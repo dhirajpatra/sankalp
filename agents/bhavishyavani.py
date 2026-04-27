@@ -67,6 +67,12 @@ def compute_readiness(gold_db: str = GOLD_DB) -> list:
     missions_df = pd.read_sql("SELECT * FROM missions_gold", conn)
     conn.close()
 
+    # Normalise column name: shodhan now writes 'aircraft_type', guard against legacy 'type'
+    if "aircraft_type" not in aircraft_df.columns and "type" in aircraft_df.columns:
+        aircraft_df = aircraft_df.rename(columns={"type": "aircraft_type"})
+    elif "aircraft_type" not in aircraft_df.columns:
+        aircraft_df["aircraft_type"] = "Unknown"
+
     mission_counts = missions_df.groupby("aircraft_id").size().reset_index(name="mission_count")
     last_mission = missions_df.groupby("aircraft_id")["date"].max().reset_index(name="last_mission_date")
 
@@ -92,20 +98,22 @@ def compute_readiness(gold_db: str = GOLD_DB) -> list:
     # Try to update Neo4j if available
     try:
         driver = get_neo4j_driver()
-        with driver.session() as session:
-            for _, row in merged.iterrows():
-                session.run(
-                    "MATCH (a:Aircraft {aircraft_id: $aid}) SET a.final_readiness_score = $score",
-                    aid=row["aircraft_id"],
-                    score=float(row["final_readiness_score"]),
-                )
-        driver.close()
-        logger.info("Readiness scores written to Neo4j.")
+        if driver:
+            with driver.session() as session:
+                for _, row in merged.iterrows():
+                    session.run(
+                        "MATCH (a:Aircraft {aircraft_id: $aid}) SET a.final_readiness_score = $score",
+                        aid=row["aircraft_id"],
+                        score=float(row["final_readiness_score"]),
+                    )
+            driver.close()
+            logger.info("Readiness scores written to Neo4j.")
     except Exception as e:
         logger.warning(f"Neo4j update skipped (offline mode): {e}")
 
     at_risk = (
-        merged[["aircraft_id", "type", "squadron", "final_readiness_score"]]
+        merged[["aircraft_id", "aircraft_type", "squadron", "final_readiness_score"]]
+        .rename(columns={"aircraft_type": "type"})   # keep orchestrator output label consistent
         .sort_values("final_readiness_score")
         .head(3)
         .to_dict(orient="records")

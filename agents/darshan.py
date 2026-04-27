@@ -164,7 +164,7 @@ with tabs[0]:
             st.markdown(
                 f"""<div class="metric-card">
                 <div style="font-size:11px; color:#888">{row['aircraft_id']}</div>
-                <div style="font-size:14px; font-weight:bold; color:#c8d6e5">{row['type']}</div>
+                <div style="font-size:14px; font-weight:bold; color:#c8d6e5">{row['aircraft_type']}</div>
                 <div style="font-size:28px; font-weight:bold; color:{color}">{score:.0f}%</div>
                 <div style="font-size:11px; color:#555">{row['squadron']}</div>
                 </div>""",
@@ -173,8 +173,8 @@ with tabs[0]:
 
     st.markdown("---")
     st.dataframe(
-        aircraft_df[["aircraft_id", "type", "squadron", "flight_hours", "last_maintenance_date"]].rename(
-            columns={"aircraft_id": "ID", "type": "Type", "squadron": "Squadron",
+        aircraft_df[["aircraft_id", "aircraft_type", "squadron", "flight_hours", "last_maintenance_date"]].rename(
+            columns={"aircraft_id": "ID", "aircraft_type": "Type", "squadron": "Squadron",
                      "flight_hours": "Flight Hrs", "last_maintenance_date": "Last Maint."}
         ),
         use_container_width=True,
@@ -187,7 +187,7 @@ with tabs[1]:
     row = aircraft_df[aircraft_df["aircraft_id"] == selected_id].iloc[0]
 
     c1, c2, c3 = st.columns(3)
-    c1.metric("Type", row["type"])
+    c1.metric("Type", row["aircraft_type"])
     c2.metric("Squadron", row["squadron"])
     c3.metric("Flight Hours", f"{row['flight_hours']:.0f} hrs")
 
@@ -244,7 +244,7 @@ with tabs[3]:
     for _, row in at_risk_df.iterrows():
         score = row.get("final_readiness_score", row.get("readiness_base_score", 0))
         status = "🔴 CRITICAL" if score < 40 else "🟡 WATCH"
-        with st.expander(f"{status} — {row['aircraft_id']} ({row['type']}) | Score: {score:.1f}%"):
+        with st.expander(f"{status} — {row['aircraft_id']} ({row['aircraft_type']}) | Score: {score:.1f}%"):
             st.write(f"**Squadron:** {row['squadron']}")
             st.write(f"**Flight Hours:** {row['flight_hours']:.0f}")
             st.write(f"**Last Maintenance:** {row['last_maintenance_date']}")
