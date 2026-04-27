@@ -15,13 +15,19 @@ services:
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
+    healthcheck:
+      test: [ "CMD-SHELL", "cypher-shell -u neo4j -p ${NEO4J_PASSWORD} 'RETURN 1' || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
     restart: unless-stopped
 
   agents:
     build: .
     container_name: sankalp-agents
     depends_on:
-      - neo4j
+      neo4j:
+        condition: service_healthy
     ports:
       - "8501:8501" # Streamlit dashboard
     environment:

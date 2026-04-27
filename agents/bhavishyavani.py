@@ -7,6 +7,7 @@ failures in Indian Air Force operational planning.
 import sqlite3
 import logging
 import os
+import time
 from datetime import date, datetime
 from dotenv import load_dotenv
 
@@ -19,6 +20,27 @@ GOLD_DB = "sankalp_gold.db"
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "sankalp123")
+
+
+def get_neo4j_driver(retries: int = 5, delay: int = 2):
+    """Connect to Neo4j with retry logic."""
+    from neo4j import GraphDatabase
+    for attempt in range(retries):
+        try:
+            driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASS))
+            driver.verify_connectivity()
+            logger.info("✓ Connected to Neo4j")
+            return driver
+        except Exception as e:
+            if attempt < retries - 1:
+                wait_time = delay * (2 ** attempt)
+                logger.warning(f"Connection attempt {attempt + 1}/{retries} failed: {e}")
+                logger.info(f"Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+            else:
+                logger.warning(f"Neo4j not reachable after {retries} attempts.")
+                return None
+    return None
 
 
 def _days_since(date_str: str) -> int:
@@ -69,8 +91,7 @@ def compute_readiness(gold_db: str = GOLD_DB) -> list:
 
     # Try to update Neo4j if available
     try:
-        from neo4j import GraphDatabase
-        driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASS))
+        driver = get_neo4j_driver()
         with driver.session() as session:
             for _, row in merged.iterrows():
                 session.run(

@@ -7,6 +7,7 @@ Indian Air Force platforms, crew, and mission operations.
 import sqlite3
 import logging
 import os
+import time
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
 
@@ -21,14 +22,28 @@ NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "sankalp123")
 
 
-def get_driver():
-    try:
-        driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASS))
-        driver.verify_connectivity()
-        return driver
-    except Exception as e:
-        logger.warning(f"Neo4j not reachable: {e}. Running in offline mode.")
-        return None
+def get_driver(retries: int = 5, delay: int = 2):
+    """
+    Connect to Neo4j with retry logic.
+    retries: number of connection attempts
+    delay: initial delay in seconds (exponential backoff)
+    """
+    for attempt in range(retries):
+        try:
+            driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASS))
+            driver.verify_connectivity()
+            logger.info("✓ Connected to Neo4j")
+            return driver
+        except Exception as e:
+            if attempt < retries - 1:
+                wait_time = delay * (2 ** attempt)
+                logger.warning(f"Connection attempt {attempt + 1}/{retries} failed: {e}")
+                logger.info(f"Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+            else:
+                logger.warning(f"Neo4j not reachable after {retries} attempts. Running in offline mode.")
+                return None
+    return None
 
 
 def build_ontology(gold_db: str = GOLD_DB) -> dict:
