@@ -31,11 +31,26 @@ def transform(raw_db: str = RAW_DB) -> str:
 
     # --- aircraft_gold ---
     aircraft = pd.read_sql("SELECT * FROM aircraft", raw_conn)
+
+    # Normalise column name: CSV uses 'aircraft_type', legacy data may use 'type'
+    if "aircraft_type" not in aircraft.columns and "type" in aircraft.columns:
+        aircraft = aircraft.rename(columns={"type": "aircraft_type"})
+    elif "aircraft_type" not in aircraft.columns:
+        aircraft["aircraft_type"] = "Unknown"
+
     aircraft["last_maintenance_date"] = pd.to_datetime(
         aircraft["last_maintenance_date"], errors="coerce"
     ).dt.strftime("%Y-%m-%d")
     aircraft["flight_hours"] = pd.to_numeric(aircraft["flight_hours"], errors="coerce").fillna(0)
     aircraft["readiness_base_score"] = aircraft["flight_hours"].apply(_base_readiness)
+
+    # Keep only the columns we need for the gold table
+    gold_cols = ["aircraft_id", "aircraft_type", "squadron",
+                 "last_maintenance_date", "flight_hours", "readiness_base_score"]
+    # Include any extra columns that exist
+    extra = [c for c in aircraft.columns if c not in gold_cols]
+    aircraft = aircraft[gold_cols + extra]
+
     aircraft.to_sql("aircraft_gold", gold_conn, if_exists="replace", index=False)
     created_tables.append("aircraft_gold")
     logger.info(f"aircraft_gold: {len(aircraft)} rows.")

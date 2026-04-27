@@ -75,17 +75,24 @@ def build_ontology(gold_db: str = GOLD_DB) -> dict:
         logger.info("Cleared existing ontology graph.")
 
         # Create :Aircraft nodes
+        # NOTE: Use explicit params — 'type' is a reserved Cypher keyword and
+        # cannot be passed via **row.to_dict(). The CSV column is 'aircraft_type'.
         for _, row in aircraft_df.iterrows():
             session.run(
                 """
                 MERGE (a:Aircraft {aircraft_id: $aircraft_id})
-                SET a.type = $type,
-                    a.squadron = $squadron,
+                SET a.aircraft_type         = $aircraft_type,
+                    a.squadron              = $squadron,
                     a.last_maintenance_date = $last_maintenance_date,
-                    a.flight_hours = $flight_hours,
-                    a.readiness_base_score = $readiness_base_score
+                    a.flight_hours          = $flight_hours,
+                    a.readiness_base_score  = $readiness_base_score
                 """,
-                **row.to_dict(),
+                aircraft_id=str(row["aircraft_id"]),
+                aircraft_type=str(row.get("aircraft_type", row.get("type", "Unknown"))),
+                squadron=str(row.get("squadron", "")),
+                last_maintenance_date=str(row.get("last_maintenance_date", "")),
+                flight_hours=float(row.get("flight_hours", 0)),
+                readiness_base_score=float(row.get("readiness_base_score", 0)),
             )
         stats["aircraft"] = len(aircraft_df)
         logger.info(f"Created {len(aircraft_df)} :Aircraft nodes.")
@@ -95,11 +102,14 @@ def build_ontology(gold_db: str = GOLD_DB) -> dict:
             session.run(
                 """
                 MERGE (c:Crew {crew_id: $crew_id})
-                SET c.name = $name,
-                    c.rank = $rank,
+                SET c.name                    = $name,
+                    c.rank                    = $rank,
                     c.aircraft_type_qualified = $aircraft_type_qualified
                 """,
-                **row.to_dict(),
+                crew_id=str(row["crew_id"]),
+                name=str(row.get("name", "")),
+                rank=str(row.get("rank", "")),
+                aircraft_type_qualified=str(row.get("aircraft_type_qualified", "")),
             )
         stats["crew"] = len(crew_df)
         logger.info(f"Created {len(crew_df)} :Crew nodes.")
@@ -110,9 +120,9 @@ def build_ontology(gold_db: str = GOLD_DB) -> dict:
             session.run(
                 """
                 MERGE (m:Mission {mission_id: $mission_id})
-                SET m.date = $date,
+                SET m.date         = $date,
                     m.mission_type = $mission_type,
-                    m.fuel_used = $fuel_used
+                    m.fuel_used    = $fuel_used
                 WITH m
                 MATCH (a:Aircraft {aircraft_id: $aircraft_id})
                 MERGE (a)-[:EXECUTED]->(m)
@@ -120,7 +130,12 @@ def build_ontology(gold_db: str = GOLD_DB) -> dict:
                 MATCH (c:Crew {crew_id: $crew_id})
                 MERGE (c)-[:PARTICIPATED_IN]->(m)
                 """,
-                **row.to_dict(),
+                mission_id=str(row["mission_id"]),
+                date=str(row.get("date", "")),
+                mission_type=str(row.get("mission_type", "")),
+                fuel_used=float(row.get("fuel_used", 0)),
+                aircraft_id=str(row["aircraft_id"]),
+                crew_id=str(row["crew_id"]),
             )
             rel_count += 2
         stats["missions"] = len(missions_df)
