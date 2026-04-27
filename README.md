@@ -36,7 +36,7 @@ pip install -r requirements.txt
 ```bash
 docker compose up -d
 ```
-Neo4j Browser: http://localhost:7474 (user: `neo4j`, pass: `sankalp123`)
+Neo4j Browser: http://localhost:7474 (user: `neo4j user`, pass: `neo4j password`)
 
 ### 3. Run the full pipeline
 ```bash

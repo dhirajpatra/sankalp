@@ -6,12 +6,19 @@ failures in Indian Air Force operational planning.
 
 import sqlite3
 import logging
+import os
 from datetime import date, datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s [Bhavishyavani] %(message)s")
 logger = logging.getLogger("bhavishyavani")
 
 GOLD_DB = "sankalp_gold.db"
+NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
+NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
+NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "sankalp123")
 
 
 def _days_since(date_str: str) -> int:
@@ -63,7 +70,7 @@ def compute_readiness(gold_db: str = GOLD_DB) -> list:
     # Try to update Neo4j if available
     try:
         from neo4j import GraphDatabase
-        driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "sankalp123"))
+        driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASS))
         with driver.session() as session:
             for _, row in merged.iterrows():
                 session.run(

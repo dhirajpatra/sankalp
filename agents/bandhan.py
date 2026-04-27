@@ -6,15 +6,19 @@ Indian Air Force platforms, crew, and mission operations.
 
 import sqlite3
 import logging
+import os
 from neo4j import GraphDatabase
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s [Bandhan] %(message)s")
 logger = logging.getLogger("bandhan")
 
 GOLD_DB = "sankalp_gold.db"
-NEO4J_URI = "bolt://localhost:7687"
-NEO4J_USER = "neo4j"
-NEO4J_PASS = "sankalp123"  # set via env in production
+NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
+NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
+NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "sankalp123")
 
 
 def get_driver():
