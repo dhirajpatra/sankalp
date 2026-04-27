@@ -7,6 +7,13 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 from datetime import date
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+NEO4J_URI = os.getenv("NEO4J_URI", "neo4j://localhost")
+NEO4J_USER = os.getenv("NEO4J_USER")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD"")
 
 # --- Page config ---
 st.set_page_config(
@@ -98,7 +105,7 @@ def write_mission(aircraft_id, crew_id, mission_date, mission_type, fuel_used):
     # Try Neo4j write-back
     try:
         from neo4j import GraphDatabase
-        driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "sankalp123"))
+        driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
         with driver.session() as session:
             session.run(
                 """

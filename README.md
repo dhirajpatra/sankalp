@@ -28,6 +28,7 @@
 ```bash
 git clone https://github.com/<your-org>/sankalp.git
 cd sankalp
+cp .env.example .env 
 pip install -r requirements.txt
 ```
 
