@@ -66,40 +66,64 @@ _init_state()
 
 
 # ── DB helpers ────────────────────────────────────────────────────────────────
-def _conn(db): return sqlite3.connect(db, check_same_thread=False)
+from neo4j import GraphDatabase
 
-@st.cache_data(ttl=30)
+def _get_neo4j_driver():
+    return GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+
+def _parse_status(df, score_col="final_readiness_score"):
+    if not df.empty and "operational_status" in df.columns:
+        df[score_col] = pd.to_numeric(df[score_col], errors="coerce").fillna(0)
+        df.loc[df["operational_status"] == "OPERATIONAL", score_col] = 100
+        df.loc[df["operational_status"] == "MAINTENANCE_REQUIRED", score_col] = 20
+    return df
+
+@st.cache_data(ttl=10)
 def load_iaf():
-    try:
-        df_a = pd.read_sql("SELECT * FROM aircraft_readiness", _conn(IAF_DB))
-    except Exception:
-        df_a = pd.read_sql("SELECT *, readiness_base_score as final_readiness_score FROM aircraft_gold", _conn(IAF_DB))
-    df_c = pd.read_sql("SELECT * FROM crew_gold",     _conn(IAF_DB))
-    df_m = pd.read_sql("SELECT * FROM missions_gold", _conn(IAF_DB))
+    driver = _get_neo4j_driver()
+    with driver.session() as session:
+        df_a = pd.DataFrame([r.data() for r in session.run("MATCH (a:Aircraft) RETURN a.aircraft_id AS aircraft_id, coalesce(a.aircraft_type, a.type, 'Unknown') AS aircraft_type, a.squadron AS squadron, a.last_maintenance_date AS last_maintenance_date, coalesce(a.flight_hours, 0) AS flight_hours, coalesce(a.readiness_base_score, a.final_readiness_score, 0) AS final_readiness_score, coalesce(a.operational_status, '') AS operational_status")])
+        if df_a.empty: df_a = pd.DataFrame(columns=["aircraft_id", "aircraft_type", "squadron", "last_maintenance_date", "flight_hours", "final_readiness_score", "operational_status"])
+        df_a = _parse_status(df_a)
+        
+        df_c = pd.DataFrame([r.data() for r in session.run("MATCH (c:Crew) RETURN c.crew_id AS crew_id, c.name AS name, c.rank AS rank, c.aircraft_type_qualified AS aircraft_type_qualified")])
+        if df_c.empty: df_c = pd.DataFrame(columns=["crew_id", "name", "rank", "aircraft_type_qualified"])
+
+        df_m = pd.DataFrame([r.data() for r in session.run("MATCH (m:Mission) OPTIONAL MATCH (a:Aircraft)-[:EXECUTED]->(m) OPTIONAL MATCH (c:Crew)-[:PARTICIPATED_IN]->(m) RETURN m.mission_id AS mission_id, m.date AS date, m.mission_type AS mission_type, coalesce(m.fuel_used, 0) AS fuel_used, a.aircraft_id AS aircraft_id, c.crew_id AS crew_id")])
+        if df_m.empty: df_m = pd.DataFrame(columns=["mission_id", "date", "mission_type", "fuel_used", "aircraft_id", "crew_id"])
+    driver.close()
     return df_a, df_c, df_m
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=10)
 def load_army():
-    c = _conn(ARMY_DB)
-    try:
-        df_a = pd.read_sql("SELECT * FROM asset_readiness", c)
-    except Exception:
-        df_a = pd.read_sql("SELECT * FROM assets_gold", c)
-        df_a["final_readiness_score"] = df_a["readiness_base_score"]
-    df_c = pd.read_sql("SELECT * FROM army_crew_gold", c)
-    df_o = pd.read_sql("SELECT * FROM ops_gold",       c)
+    driver = _get_neo4j_driver()
+    with driver.session() as session:
+        df_a = pd.DataFrame([r.data() for r in session.run("MATCH (a:ArmyAsset) RETURN a.asset_id AS asset_id, a.asset_type AS asset_type, a.unit AS unit, a.last_service_date AS last_service_date, coalesce(a.operational_hours, 0) AS operational_hours, coalesce(a.readiness_base_score, a.final_readiness_score, 0) AS final_readiness_score, coalesce(a.operational_status, '') AS operational_status")])
+        if df_a.empty: df_a = pd.DataFrame(columns=["asset_id", "asset_type", "unit", "last_service_date", "operational_hours", "final_readiness_score", "operational_status"])
+        df_a = _parse_status(df_a)
+        
+        df_c = pd.DataFrame([r.data() for r in session.run("MATCH (c:ArmyPersonnel) RETURN c.crew_id AS crew_id, c.name AS name, c.rank AS rank, c.vehicle_qualified AS vehicle_qualified")])
+        if df_c.empty: df_c = pd.DataFrame(columns=["crew_id", "name", "rank", "vehicle_qualified"])
+
+        df_o = pd.DataFrame([r.data() for r in session.run("MATCH (o:ArmyOperation) OPTIONAL MATCH (a:ArmyAsset)-[:DEPLOYED_FOR]->(o) OPTIONAL MATCH (p:ArmyPersonnel)-[:ENGAGED_IN]->(o) RETURN o.op_id AS op_id, o.date AS date, o.op_type AS op_type, coalesce(o.ammo_expended, 0) AS ammo_expended, a.asset_id AS asset_id, p.crew_id AS crew_id")])
+        if df_o.empty: df_o = pd.DataFrame(columns=["op_id", "date", "op_type", "ammo_expended", "asset_id", "crew_id"])
+    driver.close()
     return df_a, df_c, df_o
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=10)
 def load_navy():
-    c = _conn(NAVY_DB)
-    try:
-        df_v = pd.read_sql("SELECT * FROM vessel_readiness", c)
-    except Exception:
-        df_v = pd.read_sql("SELECT * FROM vessels_gold", c)
-        df_v["final_readiness_score"] = df_v["readiness_base_score"]
-    df_c = pd.read_sql("SELECT * FROM navy_crew_gold",  c)
-    df_s = pd.read_sql("SELECT * FROM sorties_gold",    c)
+    driver = _get_neo4j_driver()
+    with driver.session() as session:
+        df_v = pd.DataFrame([r.data() for r in session.run("MATCH (v:Vessel) RETURN v.vessel_id AS vessel_id, v.vessel_type AS vessel_type, v.flotilla AS flotilla, v.last_refit_date AS last_refit_date, coalesce(v.sea_hours, 0) AS sea_hours, coalesce(v.readiness_base_score, v.final_readiness_score, 0) AS final_readiness_score, coalesce(v.operational_status, '') AS operational_status")])
+        if df_v.empty: df_v = pd.DataFrame(columns=["vessel_id", "vessel_type", "flotilla", "last_refit_date", "sea_hours", "final_readiness_score", "operational_status"])
+        df_v = _parse_status(df_v)
+        
+        df_c = pd.DataFrame([r.data() for r in session.run("MATCH (c:NavyCrew) RETURN c.crew_id AS crew_id, c.name AS name, c.rank AS rank, c.vessel_qualified AS vessel_qualified")])
+        if df_c.empty: df_c = pd.DataFrame(columns=["crew_id", "name", "rank", "vessel_qualified"])
+
+        df_s = pd.DataFrame([r.data() for r in session.run("MATCH (s:Sortie) OPTIONAL MATCH (v:Vessel)-[:SAILED_FOR]->(s) OPTIONAL MATCH (c:NavyCrew)-[:ASSIGNED_TO]->(s) RETURN s.sortie_id AS sortie_id, s.date AS date, s.sortie_type AS sortie_type, coalesce(s.fuel_consumed_tons, 0) AS fuel_consumed_tons, v.vessel_id AS vessel_id, c.crew_id AS crew_id")])
+        if df_s.empty: df_s = pd.DataFrame(columns=["sortie_id", "date", "sortie_type", "fuel_consumed_tons", "vessel_id", "crew_id"])
+    driver.close()
     return df_v, df_c, df_s
 
 
@@ -540,11 +564,20 @@ def render_iaf():
 
         if st.button("🎯 Submit Mission Log", type="primary"):
             new_id = "MSN-" + "".join(random.choices(string.digits, k=4))
-            conn = _conn(IAF_DB)
-            conn.execute("INSERT INTO missions_gold VALUES (?,?,?,?,?,?)",
-                         (new_id, ac_id, crew_id, str(msn_date), msn_type, fuel))
-            conn.execute("UPDATE aircraft_gold SET flight_hours = flight_hours + 1 WHERE aircraft_id = ?", (ac_id,))
-            conn.commit(); conn.close()
+            driver = _get_neo4j_driver()
+            with driver.session() as session:
+                session.run("""
+                MERGE (m:Mission {mission_id: $mission_id})
+                SET m.date = $date, m.mission_type = $type, m.fuel_used = $fuel
+                WITH m
+                MATCH (a:Aircraft {aircraft_id: $ac_id})
+                SET a.flight_hours = coalesce(a.flight_hours, 0) + 1
+                MERGE (a)-[:EXECUTED]->(m)
+                WITH m
+                MATCH (c:Crew {crew_id: $crew_id})
+                MERGE (c)-[:PARTICIPATED_IN]->(m)
+                """, mission_id=new_id, date=str(msn_date), type=msn_type, fuel=fuel, ac_id=ac_id, crew_id=crew_id)
+            driver.close()
             st.cache_data.clear()
             st.success(f"Mission {new_id} logged. Ontology updated.")
             st.balloons()
@@ -691,11 +724,20 @@ def render_army():
 
         if st.button("⚔️ Submit Operation Log", type="primary"):
             new_id = "OP-" + "".join(random.choices(string.digits, k=4))
-            conn = _conn(ARMY_DB)
-            conn.execute("INSERT INTO ops_gold VALUES (?,?,?,?,?,?)",
-                         (new_id, as_id, crew_id, str(op_date), op_type, ammo))
-            conn.execute("UPDATE assets_gold SET operational_hours = operational_hours + 1 WHERE asset_id = ?", (as_id,))
-            conn.commit(); conn.close()
+            driver = _get_neo4j_driver()
+            with driver.session() as session:
+                session.run("""
+                MERGE (o:ArmyOperation {op_id: $op_id})
+                SET o.date = $date, o.op_type = $type, o.ammo_expended = $ammo
+                WITH o
+                MATCH (a:ArmyAsset {asset_id: $as_id})
+                SET a.operational_hours = coalesce(a.operational_hours, 0) + 1
+                MERGE (a)-[:DEPLOYED_FOR]->(o)
+                WITH o
+                MATCH (p:ArmyPersonnel {crew_id: $crew_id})
+                MERGE (p)-[:ENGAGED_IN]->(o)
+                """, op_id=new_id, date=str(op_date), type=op_type, ammo=ammo, as_id=as_id, crew_id=crew_id)
+            driver.close()
             st.cache_data.clear()
             st.success(f"Operation {new_id} logged.")
 
@@ -842,11 +884,20 @@ def render_navy():
 
         if st.button("🌊 Submit Sortie Log", type="primary"):
             new_id = "SRT-" + "".join(random.choices(string.digits, k=4))
-            conn = _conn(NAVY_DB)
-            conn.execute("INSERT INTO sorties_gold VALUES (?,?,?,?,?,?)",
-                         (new_id, v_id, crew_id, str(s_date), s_type, fuel_t))
-            conn.execute("UPDATE vessels_gold SET sea_hours = sea_hours + 1 WHERE vessel_id = ?", (v_id,))
-            conn.commit(); conn.close()
+            driver = _get_neo4j_driver()
+            with driver.session() as session:
+                session.run("""
+                MERGE (s:Sortie {sortie_id: $sortie_id})
+                SET s.date = $date, s.sortie_type = $type, s.fuel_consumed_tons = $fuel
+                WITH s
+                MATCH (v:Vessel {vessel_id: $v_id})
+                SET v.sea_hours = coalesce(v.sea_hours, 0) + 1
+                MERGE (v)-[:SAILED_FOR]->(s)
+                WITH s
+                MATCH (c:NavyCrew {crew_id: $crew_id})
+                MERGE (c)-[:ASSIGNED_TO]->(s)
+                """, sortie_id=new_id, date=str(s_date), type=s_type, fuel=fuel_t, v_id=v_id, crew_id=crew_id)
+            driver.close()
             st.cache_data.clear()
             st.success(f"Sortie {new_id} logged.")
 
