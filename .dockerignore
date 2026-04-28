@@ -4,3 +4,4 @@ neo4j_logs
 __pycache__
 .env
 .git
+data/processed/*.db

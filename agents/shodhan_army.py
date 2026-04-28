@@ -8,8 +8,8 @@ from datetime import date
 logging.basicConfig(level=logging.INFO, format="%(levelname)s [Shodhan-Army] %(message)s")
 logger = logging.getLogger("shodhan_army")
 
-RAW_DB  = "sankalp_army_raw.db"
-GOLD_DB = "sankalp_army_gold.db"
+RAW_DB  = "data/processed/sankalp_army_raw.db"
+GOLD_DB = "data/processed/sankalp_army_gold.db"
 
 
 def _base_readiness(op_hours: float) -> float:

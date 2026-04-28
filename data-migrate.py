@@ -14,10 +14,10 @@ driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
 def migrate_iaf():
     print("Migrating IAF...")
-    if not os.path.exists("sankalp_gold.db"):
+    if not os.path.exists("data/processed/sankalp_gold.db"):
         print("sankalp_gold.db not found")
         return
-    conn = sqlite3.connect("sankalp_gold.db")
+    conn = sqlite3.connect("data/processed/sankalp_gold.db")
     df_a = pd.read_sql("SELECT * FROM aircraft_gold", conn)
     df_c = pd.read_sql("SELECT * FROM crew_gold", conn)
     df_m = pd.read_sql("SELECT * FROM missions_gold", conn)
@@ -51,10 +51,10 @@ def migrate_iaf():
 
 def migrate_army():
     print("Migrating Army...")
-    if not os.path.exists("sankalp_army_gold.db"):
+    if not os.path.exists("data/processed/sankalp_army_gold.db"):
         print("sankalp_army_gold.db not found")
         return
-    conn = sqlite3.connect("sankalp_army_gold.db")
+    conn = sqlite3.connect("data/processed/sankalp_army_gold.db")
     df_a = pd.read_sql("SELECT * FROM assets_gold", conn)
     df_c = pd.read_sql("SELECT * FROM army_crew_gold", conn)
     df_o = pd.read_sql("SELECT * FROM ops_gold", conn)
@@ -88,10 +88,10 @@ def migrate_army():
 
 def migrate_navy():
     print("Migrating Navy...")
-    if not os.path.exists("sankalp_navy_gold.db"):
+    if not os.path.exists("data/processed/sankalp_navy_gold.db"):
         print("sankalp_navy_gold.db not found")
         return
-    conn = sqlite3.connect("sankalp_navy_gold.db")
+    conn = sqlite3.connect("data/processed/sankalp_navy_gold.db")
     df_v = pd.read_sql("SELECT * FROM vessels_gold", conn)
     df_c = pd.read_sql("SELECT * FROM navy_crew_gold", conn)
     df_s = pd.read_sql("SELECT * FROM sorties_gold", conn)

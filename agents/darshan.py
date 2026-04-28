@@ -26,9 +26,9 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
 STYLES = "assets/styles/style.css"
 
 # ── DB paths ────────────────────────────────────────────────────────────────
-IAF_DB   = "sankalp_gold.db"
-ARMY_DB  = "sankalp_army_gold.db"
-NAVY_DB  = "sankalp_navy_gold.db"
+IAF_DB   = "data/processed/sankalp_gold.db"
+ARMY_DB  = "data/processed/sankalp_army_gold.db"
+NAVY_DB  = "data/processed/sankalp_navy_gold.db"
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(

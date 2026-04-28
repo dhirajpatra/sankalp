@@ -8,7 +8,7 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO, format="%(levelname)s [Ganana-Army] %(message)s")
 logger = logging.getLogger("ganana_army")
 
-RAW_DB   = "sankalp_army_raw.db"
+RAW_DB   = "data/processed/sankalp_army_raw.db"
 DATA_DIR = Path("data/raw")
 
 CSV_TABLES = {

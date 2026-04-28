@@ -13,7 +13,7 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
 try:
-    conn_a = sqlite3.connect('sankalp_army_gold.db')
+    conn_a = sqlite3.connect('data/processed/sankalp_army_gold.db')
     df_a = pd.read_sql('SELECT * FROM assets_gold', conn_a)
 
     with driver.session() as session:
@@ -23,7 +23,7 @@ try:
             SET a.readiness_base_score = $score, a.operational_hours = $oh
             ''', id=str(row['asset_id']), score=float(row['readiness_base_score']), oh=int(row['operational_hours']))
 
-    conn_n = sqlite3.connect('sankalp_navy_gold.db')
+    conn_n = sqlite3.connect('data/processed/sankalp_navy_gold.db')
     df_n = pd.read_sql('SELECT * FROM vessels_gold', conn_n)
 
     with driver.session() as session:

@@ -11,7 +11,7 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO, format="%(levelname)s [Ganana] %(message)s")
 logger = logging.getLogger("ganana")
 
-RAW_DB = "sankalp_raw.db"
+RAW_DB = "data/processed/sankalp_raw.db"
 DATA_DIR = Path("data/raw")
 
 CSV_TABLES = {
