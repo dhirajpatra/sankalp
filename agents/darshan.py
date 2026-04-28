@@ -11,9 +11,9 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "sankalp123")
+NEO4J_URI = os.getenv("NEO4J_URI")
+NEO4J_USER = os.getenv("NEO4J_USER")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
 
 STYLESHEET = "assets/styles/style.css"
 
@@ -173,27 +173,63 @@ st.markdown("---")
 # Conditionally render tabs based on session state
 if st.session_state.tab_index == 0:
     st.subheader("Fleet Readiness Dashboard")
-    st.caption("Click any card to view aircraft details")
+    st.caption("Click a bar segment or a card to view aircraft details")
     
-    cols = st.columns(min(4, len(aircraft_df)))  # Max 4 columns for better layout
-    for i, (_, row) in enumerate(aircraft_df.iterrows()):
-        score = row.get("final_readiness_score", row.get("readiness_base_score", 0))
-        color = "#00e676" if score >= 60 else "#ff9800" if score >= 40 else "#ff4b4b"
-        aircraft_type = row.get("aircraft_type", row.get("type", "Unknown"))
-        squadron = row.get("squadron", "N/A")
-        aircraft_id = row.get("aircraft_id", "Unknown")
+    if not aircraft_df.empty:
+        import altair as alt
+        chart_df = aircraft_df.copy()
+        chart_df["Score"] = chart_df.apply(lambda r: r.get("final_readiness_score", r.get("readiness_base_score", 0)), axis=1)
+        chart_df["Status"] = chart_df["Score"].apply(lambda s: "Operational" if s >= 60 else "Needs Attention" if s >= 40 else "Critical")
+        chart_df["Count"] = 1
         
-        col_idx = i % 4
-        with cols[col_idx]:
-            # Create clickable button styled as card
-            if st.button(
-                f"{aircraft_id}\n{aircraft_type}\n{score:.0f}%\n{squadron}",
-                key=f"card_{aircraft_id}_{i}",
-                help=f"Click to view {aircraft_id} details"
-            ):
-                st.session_state.selected_aircraft = aircraft_id
-                st.session_state.tab_index = 1
-                st.rerun()
+        color_scale = alt.Scale(
+            domain=["Operational", "Needs Attention", "Critical"],
+            range=["#00e676", "#ff9800", "#ff4b4b"]
+        )
+        
+        selection = alt.selection_point(fields=['aircraft_id'], name='aircraft_select')
+        
+        chart = alt.Chart(chart_df).mark_bar().encode(
+            x=alt.X("squadron:N", title="Squadron", axis=alt.Axis(labelAngle=-45)),
+            y=alt.Y("Count:Q", title="Number of Aircraft"),
+            color=alt.Color("Status:N", scale=color_scale, legend=alt.Legend(title="Readiness")),
+            detail="aircraft_id:N",
+            tooltip=["aircraft_id", "aircraft_type", "squadron", "Score", "Status"],
+            opacity=alt.condition(selection, alt.value(1), alt.value(0.5))
+        ).properties(
+            height=350
+        ).add_params(
+            selection
+        )
+        
+        event = st.altair_chart(chart, use_container_width=True, on_select="rerun")
+        
+        if event and event.selection.get("aircraft_select"):
+            selected = event.selection["aircraft_select"][0]["aircraft_id"]
+            st.session_state.selected_aircraft = selected
+            st.session_state.tab_index = 1
+            st.rerun()
+
+    with st.expander("Aircraft Cards View (Click to view details)", expanded=False):
+        if not aircraft_df.empty:
+            cols = st.columns(min(4, len(aircraft_df)))  # Max 4 columns for better layout
+            for i, (_, row) in enumerate(aircraft_df.iterrows()):
+                score = row.get("final_readiness_score", row.get("readiness_base_score", 0))
+                aircraft_type = row.get("aircraft_type", row.get("type", "Unknown"))
+                squadron = row.get("squadron", "N/A")
+                aircraft_id = row.get("aircraft_id", "Unknown")
+                
+                col_idx = i % 4
+                with cols[col_idx]:
+                    # Create clickable button styled as card
+                    if st.button(
+                        f"{aircraft_id}\n{aircraft_type}\n{score:.0f}%\n{squadron}",
+                        key=f"card_{aircraft_id}_{i}",
+                        help=f"Click to view {aircraft_id} details"
+                    ):
+                        st.session_state.selected_aircraft = aircraft_id
+                        st.session_state.tab_index = 1
+                        st.rerun()
 
     st.markdown("---")
     st.dataframe(
