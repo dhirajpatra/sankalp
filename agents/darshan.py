@@ -13,6 +13,11 @@ import string
 from datetime import date, datetime
 from dotenv import load_dotenv
 
+try:
+    from admin_import import render_admin_dashboard
+except ImportError:
+    from agents.admin_import import render_admin_dashboard
+
 load_dotenv()
 NEO4J_URI = os.getenv("NEO4J_URI")
 NEO4J_USER = os.getenv("NEO4J_USER")
@@ -129,6 +134,7 @@ with st.sidebar:
         ("iaf",   "✈️", "Indian Air Force", "IAF"),
         ("army",  "🪖", "Indian Army",       "ARMY"),
         ("navy",  "⚓", "Indian Navy",       "NAVY"),
+        ("admin", "⚙️", "Admin / Data Import", "ADMIN"),
     ]
     for key, icon, label, short in branches:
         active = "active" if st.session_state.branch == key else ""
@@ -872,3 +878,5 @@ elif branch == "army":
     render_army()
 elif branch == "navy":
     render_navy()
+elif branch == "admin":
+    render_admin_dashboard(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)

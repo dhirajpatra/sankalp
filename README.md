@@ -30,6 +30,10 @@ git clone https://github.com/<your-org>/sankalp.git
 cd sankalp
 cp .env.example .env 
 pip install -r requirements.txt
+
+# Create the Neo4j import directory before running Docker
+# This ensures it is owned by your user, preventing permission errors
+mkdir -p data/neo4j_import
 ```
 
 ### 2. Start Neo4j (Docker)
