@@ -15,6 +15,8 @@ NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "sankalp123")
 
+STYLESHEET = "assets/styles/style.css"
+
 # --- Page config ---
 st.set_page_config(
     page_title="Sankalp – Defence Digital Twin",
@@ -25,23 +27,13 @@ st.set_page_config(
 GOLD_DB = "sankalp_gold.db"
 
 # --- Styling ---
-st.markdown(
-    """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Exo 2', sans-serif; }
-    .stApp { background: #0a0e17; color: #c8d6e5; }
-    h1, h2, h3 { color: #00e5ff; font-family: 'Share Tech Mono', monospace; }
-    .metric-card {
-        background: #111827; border: 1px solid #1e3a5f;
-        border-radius: 8px; padding: 16px; text-align: center;
-    }
-    .at-risk { color: #ff4b4b !important; font-weight: bold; }
-    .healthy { color: #00e676 !important; font-weight: bold; }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+def load_css():
+    css_path = os.path.join(os.path.dirname(__file__), STYLESHEET)
+    if os.path.exists(css_path):
+        with open(css_path, "r") as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+load_css()
 
 
 # --- DB helpers ---
@@ -157,10 +149,29 @@ if "selected_aircraft" not in st.session_state:
 st.title("🛡️ SANKALP — भारतीय वायु सेना Digital Twin")
 st.caption("Open Source Ontology Platform | IAF Asset Intelligence")
 
-tabs = st.tabs(["📊 Asset Overview", "✈️ Aircraft Detail", "🎯 Log Mission", "⚠️ Readiness Alert"])
+# Tab selector using radio buttons (responds to session state)
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    if st.button("📊 Asset Overview", use_container_width=True, key="tab_0"):
+        st.session_state.tab_index = 0
+        st.rerun()
+with col2:
+    if st.button("✈️ Aircraft Detail", use_container_width=True, key="tab_1"):
+        st.session_state.tab_index = 1
+        st.rerun()
+with col3:
+    if st.button("🎯 Log Mission", use_container_width=True, key="tab_2"):
+        st.session_state.tab_index = 2
+        st.rerun()
+with col4:
+    if st.button("⚠️ Readiness Alert", use_container_width=True, key="tab_3"):
+        st.session_state.tab_index = 3
+        st.rerun()
 
-# Tab 1: Asset Overview
-with tabs[0]:
+st.markdown("---")
+
+# Conditionally render tabs based on session state
+if st.session_state.tab_index == 0:
     st.subheader("Fleet Readiness Dashboard")
     st.caption("Click any card to view aircraft details")
     
@@ -193,8 +204,7 @@ with tabs[0]:
         width='stretch',
     )
 
-# Tab 2: Aircraft Detail
-with tabs[1]:
+if st.session_state.tab_index == 1:
     st.subheader("Aircraft Intelligence View")
     
     # Use selected aircraft from card click if available
@@ -239,8 +249,7 @@ with tabs[1]:
     else:
         st.info("No missions logged for this aircraft.")
 
-# Tab 3: Log Mission
-with tabs[2]:
+if st.session_state.tab_index == 2:
     st.subheader("Log New Mission — Field Entry")
     st.caption("Action writes directly to ontology graph (Neo4j) and SQLite gold store.")
 
@@ -262,8 +271,7 @@ with tabs[2]:
         st.success(f"Mission {new_msn} logged successfully. Ontology updated.")
         st.balloons()
 
-# Tab 4: Readiness Alert
-with tabs[3]:
+if st.session_state.tab_index == 3:
     st.subheader("⚠️ Maintenance Alert — Bottom Readiness Aircraft")
     if not aircraft_df.empty:
         sort_col = "final_readiness_score" if "final_readiness_score" in aircraft_df.columns else "readiness_base_score"

@@ -211,11 +211,19 @@ sankalp/
 │   ├── bandhan.py (ontology + Neo4j)
 │   ├── darshan.py (Streamlit UI)
 │   └── bhavishyavani.py (ML readiness)
+|   └──system/
+|   └──tasks/
+|   └──tools/
 ├── data/
 │   └── raw/
 │       ├── aircraft.csv
 │       ├── crew.csv
 │       └── missions.csv
+|   └──processed/ (created at runtime)
+├── evals/
+│   └── tests/
+|   └── traces/
+|   └── scorecards/
 ├── sankalp.db (created at runtime)
 ├── sankalp_gold.db (created at runtime)
 ├── docker-compose.yml (Neo4j)

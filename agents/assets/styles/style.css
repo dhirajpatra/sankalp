@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;700&display=swap');
+
+html,
+body,
+[class*="css"] {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 13px;
+}
+
+.stApp {
+    background: #0a0e17;
+    color: #c8d6e5;
+}
+
+h1 {
+    color: #00e5ff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 28px;
+}
+
+h2 {
+    color: #00e5ff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 20px;
+}
+
+h3 {
+    color: #00e5ff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 16px;
+}
+
+.metric-card {
+    background: #111827;
+    border: 1px solid #1e3a5f;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+}
+
+.at-risk {
+    color: #ff4b4b !important;
+    font-weight: bold;
+}
+
+.healthy {
+    color: #00e676 !important;
+    font-weight: bold;
+}
+
+@media (min-width: calc(736px + 8rem)) {
+    .st-emotion-cache-zy6yx3 {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
