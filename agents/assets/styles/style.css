@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap');
 
 html,
 body,
@@ -8,49 +8,193 @@ body,
 }
 
 .stApp {
-    background: #0a0e17;
+    background: #080d14;
     color: #c8d6e5;
 }
 
-h1 {
-    color: #00e5ff;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 28px;
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background: #050a10 !important;
+    border-right: 1px solid #0d2137;
 }
 
-h2 {
-    color: #00e5ff;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 20px;
-}
-
+h1,
+h2,
 h3 {
-    color: #00e5ff;
     font-family: 'Share Tech Mono', monospace;
-    font-size: 16px;
+    color: #00e5ff;
 }
 
-.metric-card {
-    background: #111827;
+/* Branch nav buttons */
+.branch-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 14px;
+    margin: 3px 0;
+    background: transparent;
+    border: 1px solid #0d2137;
+    border-radius: 4px;
+    color: #7a9bb5;
+    cursor: pointer;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.branch-btn:hover {
+    background: #0d2137;
+    color: #00e5ff;
+    border-color: #00e5ff44;
+}
+
+.branch-btn.active {
+    background: #081a2e;
+    color: #00e5ff;
+    border-color: #00e5ff;
+    font-weight: 600;
+}
+
+/* Tab sub-nav */
+.tab-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.tab-pill {
+    padding: 5px 14px;
+    border-radius: 20px;
     border: 1px solid #1e3a5f;
-    border-radius: 8px;
-    padding: 10px;
+    background: transparent;
+    color: #7a9bb5;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Exo 2', sans-serif;
+}
+
+.tab-pill.active {
+    background: #00e5ff22;
+    color: #00e5ff;
+    border-color: #00e5ff;
+}
+
+/* Metrics */
+.metric-box {
+    background: #0a1520;
+    border: 1px solid #1e3a5f;
+    border-radius: 6px;
+    padding: 14px 18px;
     text-align: center;
 }
 
-.at-risk {
-    color: #ff4b4b !important;
-    font-weight: bold;
+.metric-val {
+    font-size: 28px;
+    font-weight: 700;
+    color: #00e5ff;
+    font-family: 'Share Tech Mono', monospace;
 }
 
-.healthy {
-    color: #00e676 !important;
-    font-weight: bold;
+.metric-lbl {
+    font-size: 11px;
+    color: #7a9bb5;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-@media (min-width: calc(736px + 8rem)) {
-    .st-emotion-cache-zy6yx3 {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
+/* Clickable metric buttons — override Streamlit button defaults */
+div[data-testid="stButton"] button[kind="secondary"].metric-btn {
+    background: #0a1520 !important;
+    border: 1px solid #1e3a5f !important;
+    border-radius: 6px !important;
+    color: #c8d6e5 !important;
+    padding: 14px 10px !important;
+    width: 100% !important;
+    transition: border-color 0.2s, background 0.2s !important;
+}
+
+div[data-testid="stButton"] button[kind="secondary"].metric-btn:hover {
+    border-color: #00e5ff88 !important;
+    background: #0d1f30 !important;
+}
+
+/* Detail panel */
+.detail-panel {
+    background: #0a1520;
+    border: 1px solid #1e3a5f;
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-top: 12px;
+}
+
+.detail-panel-title {
+    font-family: 'Share Tech Mono', monospace;
+    color: #00e5ff;
+    font-size: 14px;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #1e3a5f;
+    padding-bottom: 8px;
+}
+
+.inline-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+.badge-crit-bg {
+    background: #ff4b4b22;
+    color: #ff4b4b;
+    border: 1px solid #ff4b4b44;
+}
+
+.badge-warn-bg {
+    background: #ff980022;
+    color: #ff9800;
+    border: 1px solid #ff980044;
+}
+
+.badge-op-bg {
+    background: #00e67622;
+    color: #00e676;
+    border: 1px solid #00e67644;
+}
+
+/* Status badges */
+.badge-op {
+    color: #00e676;
+    font-weight: 600;
+}
+
+.badge-warn {
+    color: #ff9800;
+    font-weight: 600;
+}
+
+.badge-crit {
+    color: #ff4b4b;
+    font-weight: 600;
+}
+
+/* Score bar */
+.score-bar-outer {
+    background: #1a2a3a;
+    border-radius: 4px;
+    height: 8px;
+    margin-top: 4px;
+}
+
+.score-bar-inner {
+    height: 8px;
+    border-radius: 4px;
+}
+
+/* Divider */
+hr {
+    border-color: #0d2137;
 }

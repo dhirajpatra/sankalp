@@ -1,5 +1,5 @@
 """
-Darshan (दर्शन) v2 – Sankalp Defence Digital Twin
+Darshan (दर्शन) v2 – Sankalp Defence Digital Twin Ontology Platform
 Multi-branch: IAF · Army · Navy
 Palantir Foundry-style Ontology Platform
 """
@@ -18,6 +18,8 @@ NEO4J_URI = os.getenv("NEO4J_URI")
 NEO4J_USER = os.getenv("NEO4J_USER")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
 
+STYLES = "assets/styles/style.css"
+
 # ── DB paths ────────────────────────────────────────────────────────────────
 IAF_DB   = "sankalp_gold.db"
 ARMY_DB  = "sankalp_army_gold.db"
@@ -32,77 +34,24 @@ st.set_page_config(
 )
 
 # ── CSS ──────────────────────────────────────────────────────────────────────
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap');
+def load_css():
+    css_path = os.path.join(os.path.dirname(__file__), STYLES)
+    if os.path.exists(css_path):
+        with open(css_path, "r") as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    else:
+        st.warning(f"Stylesheet not found: {css_path}")
 
-html, body, [class*="css"] {
-    font-family: 'Exo 2', sans-serif;
-    font-size: 13px;
-}
-.stApp { background: #080d14; color: #c8d6e5; }
-
-/* Sidebar */
-section[data-testid="stSidebar"] {
-    background: #050a10 !important;
-    border-right: 1px solid #0d2137;
-}
-
-h1, h2, h3 {
-    font-family: 'Share Tech Mono', monospace;
-    color: #00e5ff;
-}
-
-/* Branch nav buttons */
-.branch-btn {
-    display: flex; align-items: center; gap: 10px;
-    width: 100%; padding: 10px 14px; margin: 3px 0;
-    background: transparent; border: 1px solid #0d2137;
-    border-radius: 4px; color: #7a9bb5; cursor: pointer;
-    font-family: 'Exo 2', sans-serif; font-size: 13px;
-    transition: all 0.2s;
-}
-.branch-btn:hover  { background: #0d2137; color: #00e5ff; border-color: #00e5ff44; }
-.branch-btn.active { background: #081a2e; color: #00e5ff; border-color: #00e5ff; font-weight: 600; }
-
-/* Tab sub-nav */
-.tab-row { display: flex; gap: 6px; margin-bottom: 16px; }
-.tab-pill {
-    padding: 5px 14px; border-radius: 20px; border: 1px solid #1e3a5f;
-    background: transparent; color: #7a9bb5; font-size: 12px;
-    cursor: pointer; font-family: 'Exo 2', sans-serif;
-}
-.tab-pill.active { background: #00e5ff22; color: #00e5ff; border-color: #00e5ff; }
-
-/* Metrics */
-.metric-box {
-    background: #0a1520; border: 1px solid #1e3a5f; border-radius: 6px;
-    padding: 14px 18px; text-align: center;
-}
-.metric-val  { font-size: 28px; font-weight: 700; color: #00e5ff; font-family: 'Share Tech Mono', monospace; }
-.metric-lbl  { font-size: 11px; color: #7a9bb5; text-transform: uppercase; letter-spacing: 1px; }
-
-/* Status badges */
-.badge-op   { color: #00e676; font-weight: 600; }
-.badge-warn { color: #ff9800; font-weight: 600; }
-.badge-crit { color: #ff4b4b; font-weight: 600; }
-
-/* Score bar */
-.score-bar-outer { background: #1a2a3a; border-radius: 4px; height: 8px; margin-top:4px; }
-.score-bar-inner { height: 8px; border-radius: 4px; }
-
-/* Divider */
-hr { border-color: #0d2137; }
-</style>
-""", unsafe_allow_html=True)
+load_css()
 
 
 # ── Session defaults ─────────────────────────────────────────────────────────
 def _init_state():
     defaults = {
-        "branch":   "iaf",     # iaf | army | navy
-        "tab":      0,
-        "sel_asset": None,
+        "branch":       "iaf",   # iaf | army | navy
+        "tab":          0,
+        "sel_asset":    None,
+        "metric_panel": None,    # None | "critical" | "crew" | "missions" | "ops" | "sorties" etc.
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -163,15 +112,14 @@ def _score_badge(s):
 # ── Left sidebar ──────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
+        '<a href="/" target="_self" style="text-decoration:none;">'
         '<img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg" '
-        'width="60" style="display:block;margin:0 auto 8px;">',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
+        'width="60" style="display:block;margin:0 auto 8px;">'
         '<div style="text-align:center;font-family:\'Share Tech Mono\',monospace;'
         'color:#00e5ff;font-size:18px;letter-spacing:2px;">SANKALP</div>'
+        '</a>'
         '<div style="text-align:center;color:#7a9bb5;font-size:10px;margin-bottom:16px;">'
-        'DEFENCE DIGITAL TWIN</div>',
+        'DEFENCE ONTOLOGY PLATFORM</div><div style="text-align:center;color:#00e5ff;font-size:12px;margin-bottom:12px;letter-spacing:1px;">DATA + LOGIC + ACTION</div>',
         unsafe_allow_html=True,
     )
     st.markdown("---")
@@ -248,7 +196,7 @@ def render_readiness_chart(df, id_col, type_col, unit_col, score_col):
 
 
 def metrics_row(items):
-    """Render a row of metric boxes. items = list of (label, value)"""
+    """Render a row of plain (non-clickable) metric boxes. items = list of (label, value)"""
     cols = st.columns(len(items))
     for col, (lbl, val) in zip(cols, items):
         with col:
@@ -259,6 +207,204 @@ def metrics_row(items):
                 f'</div>',
                 unsafe_allow_html=True,
             )
+
+
+def clickable_metrics_row(items, key_prefix="m"):
+    """
+    Render metric boxes as clickable Streamlit buttons.
+    items = list of (label, value, panel_key, clickable:bool)
+    Clicking a box toggles st.session_state.metric_panel.
+    Returns nothing – callers read st.session_state.metric_panel.
+    """
+    cols = st.columns(len(items))
+    for i, (col, (lbl, val, panel_key, clickable)) in enumerate(zip(cols, items)):
+        with col:
+            if clickable:
+                active = st.session_state.metric_panel == panel_key
+                border_color = "#00e5ff" if active else "#1e3a5f"
+                bg_color     = "#0d1f30" if active else "#0a1520"
+                # Render as a styled button via markdown label + Streamlit button
+                st.markdown(
+                    f'<div style="background:{bg_color};border:1px solid {border_color};'
+                    f'border-radius:6px;padding:2px 4px;text-align:center;margin-bottom:-8px;">'
+                    f'<div style="font-size:26px;font-weight:700;color:#00e5ff;'
+                    f'font-family:\'Share Tech Mono\',monospace;">{val}</div>'
+                    f'<div style="font-size:10px;color:#7a9bb5;text-transform:uppercase;'
+                    f'letter-spacing:1px;padding-bottom:4px;">{lbl} ▾</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+                if st.button("", key=f"{key_prefix}_{i}_{panel_key}",
+                             use_container_width=True,
+                             help=f"Click to see {lbl} details"):
+                    st.session_state.metric_panel = None if active else panel_key
+                    st.rerun()
+            else:
+                st.markdown(
+                    f'<div class="metric-box">'
+                    f'<div class="metric-val">{val}</div>'
+                    f'<div class="metric-lbl">{lbl}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+
+
+def render_metric_detail(panel_key, aircraft_df, crew_df, missions_df,
+                         score_col, type_col,
+                         asset_label="Aircraft", mission_label="Mission"):
+    """
+    Render the expandable detail panel beneath the metrics row.
+    panel_key: 'critical' | 'watch' | 'operational' | 'crew' | 'missions'
+    """
+    if st.session_state.metric_panel is None:
+        return
+
+    key = st.session_state.metric_panel
+
+    # ── Critical aircraft ──────────────────────────────────────────────────
+    if key == "critical":
+        crit_df = aircraft_df[aircraft_df[score_col] < 40].copy()
+        st.markdown(
+            f'<div class="detail-panel">'
+            f'<div class="detail-panel-title">🔴 CRITICAL {asset_label.upper()}S'
+            f' &nbsp;–&nbsp; {len(crit_df)} requiring immediate attention</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        if crit_df.empty:
+            st.success("No critical assets. All units above threshold.")
+        else:
+            display = crit_df[["aircraft_id", type_col, "squadron", score_col,
+                                "flight_hours", "last_maintenance_date"]].copy()
+            display.columns = ["ID", "Type", "Squadron/Unit", "Readiness %", "Flight Hrs", "Last Maint."]
+            display["Readiness %"] = display["Readiness %"].round(1)
+            display = display.sort_values("Readiness %")
+            st.dataframe(display, use_container_width=True, hide_index=True)
+            # Bar mini-chart
+            import altair as alt
+            bar = alt.Chart(display).mark_bar(color="#ff4b4b").encode(
+                x=alt.X("Readiness %:Q", scale=alt.Scale(domain=[0, 100])),
+                y=alt.Y("ID:N", sort="-x"),
+                tooltip=["ID", "Type", "Squadron/Unit", "Readiness %"],
+            ).properties(height=min(40 * len(display) + 40, 320))
+            st.altair_chart(bar, use_container_width=True)
+
+    # ── Watch aircraft ─────────────────────────────────────────────────────
+    elif key == "watch":
+        watch_df = aircraft_df[
+            (aircraft_df[score_col] >= 40) & (aircraft_df[score_col] < 60)
+        ].copy()
+        st.markdown(
+            f'<div class="detail-panel">'
+            f'<div class="detail-panel-title">🟡 WATCH {asset_label.upper()}S'
+            f' &nbsp;–&nbsp; {len(watch_df)} under monitoring</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        if watch_df.empty:
+            st.success("No assets in watch state.")
+        else:
+            display = watch_df[["aircraft_id", type_col, "squadron", score_col,
+                                 "flight_hours", "last_maintenance_date"]].copy()
+            display.columns = ["ID", "Type", "Squadron/Unit", "Readiness %", "Flight Hrs", "Last Maint."]
+            display["Readiness %"] = display["Readiness %"].round(1)
+            st.dataframe(display.sort_values("Readiness %"), use_container_width=True, hide_index=True)
+
+    # ── Operational aircraft ───────────────────────────────────────────────
+    elif key == "operational":
+        op_df = aircraft_df[aircraft_df[score_col] >= 60].copy()
+        st.markdown(
+            f'<div class="detail-panel">'
+            f'<div class="detail-panel-title">🟢 OPERATIONAL {asset_label.upper()}S'
+            f' &nbsp;–&nbsp; {len(op_df)} mission-ready</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        display = op_df[["aircraft_id", type_col, "squadron", score_col,
+                          "flight_hours", "last_maintenance_date"]].copy()
+        display.columns = ["ID", "Type", "Squadron/Unit", "Readiness %", "Flight Hrs", "Last Maint."]
+        display["Readiness %"] = display["Readiness %"].round(1)
+        st.dataframe(display.sort_values("Readiness %", ascending=False),
+                     use_container_width=True, hide_index=True)
+
+    # ── Crew roster ───────────────────────────────────────────────────────
+    elif key == "crew":
+        st.markdown(
+            f'<div class="detail-panel">'
+            f'<div class="detail-panel-title">👤 CREW ROSTER'
+            f' &nbsp;–&nbsp; {len(crew_df)} personnel</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        # Rank breakdown
+        rank_counts = crew_df["rank"].value_counts().reset_index()
+        rank_counts.columns = ["Rank", "Count"]
+        c1, c2 = st.columns([1, 2])
+        with c1:
+            import altair as alt
+            pie = alt.Chart(rank_counts).mark_arc(innerRadius=40).encode(
+                theta=alt.Theta("Count:Q"),
+                color=alt.Color("Rank:N", scale=alt.Scale(scheme="blues")),
+                tooltip=["Rank", "Count"],
+            ).properties(height=200, title="By Rank")
+            st.altair_chart(pie, use_container_width=True)
+        with c2:
+            qual_col = [c for c in crew_df.columns if "qualif" in c.lower() or "type" in c.lower()]
+            show_cols = ["crew_id", "name", "rank"] + qual_col[:1]
+            display = crew_df[show_cols].copy()
+            display.columns = ["ID", "Name", "Rank"] + (["Qualified On"] if qual_col else [])
+            st.dataframe(display, use_container_width=True, hide_index=True, height=220)
+
+    # ── Missions / Operations / Sorties ───────────────────────────────────
+    elif key in ("missions", "ops", "sorties"):
+        label_map = {"missions": "MISSIONS", "ops": "OPERATIONS", "sorties": "SORTIES"}
+        panel_title = label_map.get(key, key.upper())
+
+        # Detect date col
+        date_col = next((c for c in missions_df.columns if "date" in c.lower()), None)
+        type_col2 = next((c for c in missions_df.columns
+                          if any(k in c.lower() for k in ["mission_type","op_type","sortie_type"])), None)
+
+        st.markdown(
+            f'<div class="detail-panel">'
+            f'<div class="detail-panel-title">🎯 {panel_title}'
+            f' &nbsp;–&nbsp; {len(missions_df)} logged</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        c1, c2 = st.columns([1, 2])
+        with c1:
+            if type_col2:
+                import altair as alt
+                mc = missions_df[type_col2].value_counts().reset_index()
+                mc.columns = ["Type", "Count"]
+                bar = alt.Chart(mc).mark_bar().encode(
+                    x=alt.X("Count:Q"),
+                    y=alt.Y("Type:N", sort="-x"),
+                    color=alt.value("#00e5ff"),
+                    tooltip=["Type", "Count"],
+                ).properties(height=200, title="By Type")
+                st.altair_chart(bar, use_container_width=True)
+        with c2:
+            if date_col:
+                import altair as alt
+                try:
+                    ts = missions_df.copy()
+                    ts[date_col] = pd.to_datetime(ts[date_col], errors="coerce")
+                    ts = ts.dropna(subset=[date_col])
+                    ts["Month"] = ts[date_col].dt.to_period("M").astype(str)
+                    monthly = ts.groupby("Month").size().reset_index(name="Count")
+                    line = alt.Chart(monthly).mark_line(color="#00e5ff", point=True).encode(
+                        x=alt.X("Month:O", axis=alt.Axis(labelAngle=-40)),
+                        y=alt.Y("Count:Q"),
+                        tooltip=["Month", "Count"],
+                    ).properties(height=200, title="Monthly Activity")
+                    st.altair_chart(line, use_container_width=True)
+                except Exception:
+                    pass
+        # Full table (last 20)
+        st.caption(f"Latest 20 {panel_title.lower()}")
+        st.dataframe(missions_df.tail(20), use_container_width=True, hide_index=True)
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -287,23 +433,37 @@ def render_iaf():
 
     # ── Overview ──
     if tab == 0:
-        op   = (aircraft_df.get("final_readiness_score", aircraft_df.get("readiness_base_score", 0)) >= 60).sum()
-        warn = ((aircraft_df.get("final_readiness_score", aircraft_df.get("readiness_base_score", 0)) >= 40) &
-                (aircraft_df.get("final_readiness_score", aircraft_df.get("readiness_base_score", 0)) < 60)).sum()
-        crit = (aircraft_df.get("final_readiness_score", aircraft_df.get("readiness_base_score", 0)) < 40).sum()
-
-        metrics_row([
-            ("Total Aircraft", len(aircraft_df)),
-            ("🟢 Operational", int(op)),
-            ("🟡 Watch",        int(warn)),
-            ("🔴 Critical",    int(crit)),
-            ("Total Crew",     len(crew_df)),
-            ("Total Missions", len(missions_df)),
-        ])
-        st.markdown("<br>", unsafe_allow_html=True)
-
         score_col = "final_readiness_score" if "final_readiness_score" in aircraft_df.columns else "readiness_base_score"
         type_col  = "aircraft_type" if "aircraft_type" in aircraft_df.columns else "type"
+
+        scores = aircraft_df[score_col]
+        op   = int((scores >= 60).sum())
+        warn = int(((scores >= 40) & (scores < 60)).sum())
+        crit = int((scores < 40).sum())
+
+        # Reset panel if branch changed
+        if st.session_state.metric_panel not in (None, "critical", "watch", "operational", "crew", "missions"):
+            st.session_state.metric_panel = None
+
+        clickable_metrics_row([
+            ("Total Aircraft",  len(aircraft_df), "total",       False),
+            ("🟢 Operational",  op,               "operational", True),
+            ("🟡 Watch",        warn,             "watch",       True),
+            ("🔴 Critical",     crit,             "critical",    True),
+            ("Total Crew",      len(crew_df),     "crew",        True),
+            ("Total Missions",  len(missions_df), "missions",    True),
+        ], key_prefix="iaf_m")
+
+        # Detail panel (renders if a metric box is active)
+        render_metric_detail(
+            st.session_state.metric_panel,
+            aircraft_df, crew_df, missions_df,
+            score_col, type_col,
+            asset_label="Aircraft", mission_label="Mission",
+        )
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
         chart, _ = render_readiness_chart(aircraft_df, "aircraft_id", type_col, "squadron", score_col)
         event = st.altair_chart(chart, use_container_width=True, on_select="rerun")
         if event and event.selection.get("sel"):
@@ -429,14 +589,45 @@ def render_army():
         op   = (assets_df[score_col] >= 60).sum()
         warn = ((assets_df[score_col] >= 40) & (assets_df[score_col] < 60)).sum()
         crit = (assets_df[score_col] < 40).sum()
-        metrics_row([
-            ("Total Assets",    len(assets_df)),
-            ("🟢 Operational",  int(op)),
-            ("🟡 Watch",        int(warn)),
-            ("🔴 Critical",     int(crit)),
-            ("Personnel",       len(crew_df)),
-            ("Operations",      len(ops_df)),
-        ])
+
+        # Reset panel if switching from another branch
+        if st.session_state.metric_panel not in (None, "critical", "watch", "operational", "army_crew", "ops"):
+            st.session_state.metric_panel = None
+
+        clickable_metrics_row([
+            ("Total Assets",    len(assets_df), "total",       False),
+            ("🟢 Operational",  int(op),        "operational", True),
+            ("🟡 Watch",        int(warn),      "watch",       True),
+            ("🔴 Critical",     int(crit),      "critical",    True),
+            ("Personnel",       len(crew_df),   "army_crew",   True),
+            ("Operations",      len(ops_df),    "ops",         True),
+        ], key_prefix="army_m")
+
+        # Re-map army-specific keys to generic render_metric_detail keys
+        panel = st.session_state.metric_panel
+        mapped_panel = {"army_crew": "crew", "ops": "missions"}.get(panel, panel)
+
+        # Adapt DataFrames to the generic renderer column names
+        assets_adapted = assets_df.rename(columns={
+            "asset_id": "aircraft_id", "unit": "squadron",
+            "last_service_date": "last_maintenance_date",
+            "operational_hours": "flight_hours",
+        })
+        crew_adapted = crew_df.rename(columns={"vehicle_qualified": "aircraft_type_qualified"})
+        ops_adapted  = ops_df.rename(columns={"op_id": "mission_id", "op_type": "mission_type"})
+
+        st.session_state.metric_panel = mapped_panel
+        render_metric_detail(
+            mapped_panel,
+            assets_adapted, crew_adapted, ops_adapted,
+            score_col, "asset_type",
+            asset_label="Asset", mission_label="Operation",
+        )
+        # Restore original key so button toggle works correctly
+        if mapped_panel in ("crew", "missions"):
+            reverse = {"crew": "army_crew", "missions": "ops"}
+            st.session_state.metric_panel = reverse.get(mapped_panel, mapped_panel)
+
         st.markdown("<br>", unsafe_allow_html=True)
         chart, _ = render_readiness_chart(assets_df, "asset_id", "asset_type", "unit", score_col)
         event = st.altair_chart(chart, use_container_width=True, on_select="rerun")
@@ -470,7 +661,7 @@ def render_army():
             f'style="width:{min(score,100):.0f}%;background:{color};"></div></div>',
             unsafe_allow_html=True,
         )
-        st.markdown("<br>**Operation History**")
+        st.markdown("**Operation History**")
         ac_ops = ops_df[ops_df["asset_id"] == sel].copy()
         if not ac_ops.empty:
             ac_ops = ac_ops.merge(crew_df[["crew_id","name","rank"]], on="crew_id", how="left")
@@ -552,14 +743,41 @@ def render_navy():
         op   = (vessels_df[score_col] >= 60).sum()
         warn = ((vessels_df[score_col] >= 40) & (vessels_df[score_col] < 60)).sum()
         crit = (vessels_df[score_col] < 40).sum()
-        metrics_row([
-            ("Total Vessels",   len(vessels_df)),
-            ("🟢 Seaworthy",    int(op)),
-            ("🟡 Watch",        int(warn)),
-            ("🔴 Critical",     int(crit)),
-            ("Naval Crew",      len(crew_df)),
-            ("Sorties",         len(sorties_df)),
-        ])
+
+        if st.session_state.metric_panel not in (None, "critical", "watch", "operational", "navy_crew", "sorties"):
+            st.session_state.metric_panel = None
+
+        clickable_metrics_row([
+            ("Total Vessels",  len(vessels_df), "total",       False),
+            ("🟢 Seaworthy",   int(op),         "operational", True),
+            ("🟡 Watch",       int(warn),        "watch",       True),
+            ("🔴 Critical",    int(crit),        "critical",    True),
+            ("Naval Crew",     len(crew_df),     "navy_crew",   True),
+            ("Sorties",        len(sorties_df),  "sorties",     True),
+        ], key_prefix="navy_m")
+
+        panel = st.session_state.metric_panel
+        mapped_panel = {"navy_crew": "crew", "sorties": "missions"}.get(panel, panel)
+
+        vessels_adapted = vessels_df.rename(columns={
+            "vessel_id": "aircraft_id", "flotilla": "squadron",
+            "last_refit_date": "last_maintenance_date",
+            "sea_hours": "flight_hours",
+        })
+        sorties_adapted = sorties_df.rename(columns={"sortie_id": "mission_id", "sortie_type": "mission_type",
+                                                      "fuel_consumed_tons": "fuel_used"})
+
+        st.session_state.metric_panel = mapped_panel
+        render_metric_detail(
+            mapped_panel,
+            vessels_adapted, crew_df, sorties_adapted,
+            score_col, "vessel_type",
+            asset_label="Vessel", mission_label="Sortie",
+        )
+        if mapped_panel in ("crew", "missions"):
+            reverse = {"crew": "navy_crew", "missions": "sorties"}
+            st.session_state.metric_panel = reverse.get(mapped_panel, mapped_panel)
+
         st.markdown("<br>", unsafe_allow_html=True)
         chart, _ = render_readiness_chart(vessels_df, "vessel_id", "vessel_type", "flotilla", score_col)
         event = st.altair_chart(chart, use_container_width=True, on_select="rerun")
@@ -593,7 +811,7 @@ def render_navy():
             f'style="width:{min(score,100):.0f}%;background:{color};"></div></div>',
             unsafe_allow_html=True,
         )
-        st.markdown("<br>**Sortie History**")
+        st.markdown("**Sortie History**")
         v_s = sorties_df[sorties_df["vessel_id"] == sel].copy()
         if not v_s.empty:
             v_s = v_s.merge(crew_df[["crew_id","name","rank"]], on="crew_id", how="left")
