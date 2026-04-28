@@ -150,6 +150,8 @@ st.sidebar.caption("Agents: Ganana · Shodhan · Bandhan · Bhavishyavani · Dar
 # --- Initialize session state for tabs ---
 if "tab_index" not in st.session_state:
     st.session_state.tab_index = 0
+if "selected_aircraft" not in st.session_state:
+    st.session_state.selected_aircraft = None
 
 # --- Main ---
 st.title("🛡️ SANKALP — भारतीय वायु सेना Digital Twin")
@@ -160,22 +162,27 @@ tabs = st.tabs(["📊 Asset Overview", "✈️ Aircraft Detail", "🎯 Log Missi
 # Tab 1: Asset Overview
 with tabs[0]:
     st.subheader("Fleet Readiness Dashboard")
-    cols = st.columns(len(aircraft_df))
+    st.caption("Click any card to view aircraft details")
+    
+    cols = st.columns(min(4, len(aircraft_df)))  # Max 4 columns for better layout
     for i, (_, row) in enumerate(aircraft_df.iterrows()):
         score = row.get("final_readiness_score", row.get("readiness_base_score", 0))
         color = "#00e676" if score >= 60 else "#ff9800" if score >= 40 else "#ff4b4b"
         aircraft_type = row.get("aircraft_type", row.get("type", "Unknown"))
         squadron = row.get("squadron", "N/A")
-        with cols[i]:
-            st.markdown(
-                f"""<div class="metric-card">
-                <div style="font-size:11px; color:#888">{row['aircraft_id']}</div>
-                <div style="font-size:14px; font-weight:bold; color:#c8d6e5">{aircraft_type}</div>
-                <div style="font-size:28px; font-weight:bold; color:{color}">{score:.0f}%</div>
-                <div style="font-size:11px; color:#555">{squadron}</div>
-                </div>""",
-                unsafe_allow_html=True,
-            )
+        aircraft_id = row.get("aircraft_id", "Unknown")
+        
+        col_idx = i % 4
+        with cols[col_idx]:
+            # Create clickable button styled as card
+            if st.button(
+                f"{aircraft_id}\n{aircraft_type}\n{score:.0f}%\n{squadron}",
+                key=f"card_{aircraft_id}_{i}",
+                help=f"Click to view {aircraft_id} details"
+            ):
+                st.session_state.selected_aircraft = aircraft_id
+                st.session_state.tab_index = 1
+                st.rerun()
 
     st.markdown("---")
     st.dataframe(
@@ -189,7 +196,22 @@ with tabs[0]:
 # Tab 2: Aircraft Detail
 with tabs[1]:
     st.subheader("Aircraft Intelligence View")
-    selected_id = st.selectbox("Select Aircraft", aircraft_df["aircraft_id"].tolist())
+    
+    # Use selected aircraft from card click if available
+    default_idx = 0
+    if st.session_state.selected_aircraft and st.session_state.selected_aircraft in aircraft_df["aircraft_id"].values:
+        default_idx = aircraft_df[aircraft_df["aircraft_id"] == st.session_state.selected_aircraft].index[0]
+    
+    selected_id = st.selectbox(
+        "Select Aircraft", 
+        aircraft_df["aircraft_id"].tolist(),
+        index=default_idx,
+        key="aircraft_select"
+    )
+    
+    # Update session state with selection
+    st.session_state.selected_aircraft = selected_id
+    
     row = aircraft_df[aircraft_df["aircraft_id"] == selected_id].iloc[0]
 
     c1, c2, c3 = st.columns(3)
