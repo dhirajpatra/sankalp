@@ -20,6 +20,19 @@ NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "sankalp123")
 
 
+def _get_status(score):
+    import json
+    threshold = 5
+    try:
+        with open("data/processed/ontology_rules.json", "r") as f:
+            rules = json.load(f)
+            threshold = rules.get("__global_settings__", {}).get("operational_threshold", 5)
+    except Exception:
+        pass
+    if score >= threshold: return "Operational"
+    if score >= (threshold - 20): return "Watch"
+    return "Critical"
+
 def get_driver(retries: int = 5, delay: int = 2):
     from neo4j import GraphDatabase
     for attempt in range(retries):
@@ -87,7 +100,8 @@ def build_ontology(gold_db: str = GOLD_DB) -> dict:
                     v.last_refit_date      = $last_refit_date,
                     v.sea_hours            = $sea_hours,
                     v.readiness_base_score = $readiness_base_score,
-                    v.final_readiness_score = $final_readiness_score
+                    v.final_readiness_score = $final_readiness_score,
+                    v.operational_status   = $operational_status
                 """,
                 vessel_id=str(row["vessel_id"]),
                 vessel_type=v_type,
@@ -96,6 +110,7 @@ def build_ontology(gold_db: str = GOLD_DB) -> dict:
                 sea_hours=sea_hours,
                 readiness_base_score=float(row.get("readiness_base_score", 0)),
                 final_readiness_score=float(row.get("final_readiness_score", row.get("readiness_base_score", 0))),
+                operational_status=_get_status(float(row.get("readiness_base_score", 0))),
             )
         logger.info(f"Upserted {len(vessels_df)} :Vessel nodes.")
 

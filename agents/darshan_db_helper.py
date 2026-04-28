@@ -72,11 +72,21 @@ def load_navy():
 
 
 def _score_color(s):
-    if s >= 60: return "#00e676"
-    if s >= 40: return "#ff9800"
+    try:
+        from agents.ontology_engine import get_operational_threshold
+        t = get_operational_threshold()
+    except Exception:
+        t = 5
+    if s >= t: return "#00e676"
+    if s >= max(0, t - 20): return "#ff9800"
     return "#ff4b4b"
 
 def _score_badge(s):
-    if s >= 60: return "🟢 Operational"
-    if s >= 40: return "🟡 Needs Attention"
+    try:
+        from agents.ontology_engine import get_operational_threshold
+        t = get_operational_threshold()
+    except Exception:
+        t = 5
+    if s >= t: return "🟢 Operational"
+    if s >= max(0, t - 20): return "🟡 Needs Attention"
     return "🔴 Critical"

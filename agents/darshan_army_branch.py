@@ -4,6 +4,7 @@ import string
 from datetime import date
 from darshan_db_helper import load_army, _get_neo4j_driver, _score_color, _score_badge
 from darshan_branch_renders import clickable_metrics_row, render_metric_detail, render_readiness_chart
+from agents.ontology_engine import get_operational_threshold
 
 # ────────────────────────────────────────────────────────────────────────────
 #  ARMY BRANCH
@@ -32,8 +33,8 @@ def render_army():
     tab = st.session_state.tab
 
     if tab == 0:
-        op   = (assets_df[score_col] >= 60).sum()
-        warn = ((assets_df[score_col] >= 40) & (assets_df[score_col] < 60)).sum()
+        op   = (assets_df[score_col] >= 5).sum()
+        warn = ((assets_df[score_col] >= 40) & (assets_df[score_col] < 5)).sum()
         crit = (assets_df[score_col] < 40).sum()
 
         # Reset panel if switching from another branch

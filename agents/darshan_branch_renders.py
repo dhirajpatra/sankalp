@@ -11,7 +11,7 @@ def render_readiness_chart(df, id_col, type_col, unit_col, score_col):
     chart_df = df[[id_col, type_col, unit_col, score_col]].copy()
     chart_df.columns = ["asset_id", "asset_type", "unit", "Score"]
     chart_df["Status"] = chart_df["Score"].apply(
-        lambda s: "Operational" if s >= 60 else "Needs Attention" if s >= 40 else "Critical"
+        lambda s: "Operational" if s >= 5 else "Needs Attention" if s >= 40 else "Critical"
     )
     chart_df["Count"] = 1
     color_scale = alt.Scale(
@@ -127,7 +127,7 @@ def render_metric_detail(panel_key, aircraft_df, crew_df, missions_df,
     # ── Watch aircraft ─────────────────────────────────────────────────────
     elif key == "watch":
         watch_df = aircraft_df[
-            (aircraft_df[score_col] >= 40) & (aircraft_df[score_col] < 60)
+            (aircraft_df[score_col] >= 40) & (aircraft_df[score_col] < 5)
         ].copy()
         st.markdown(
             f'<div class="detail-panel">'
@@ -147,7 +147,7 @@ def render_metric_detail(panel_key, aircraft_df, crew_df, missions_df,
 
     # ── Operational aircraft ───────────────────────────────────────────────
     elif key == "operational":
-        op_df = aircraft_df[aircraft_df[score_col] >= 60].copy()
+        op_df = aircraft_df[aircraft_df[score_col] >= 5].copy()
         st.markdown(
             f'<div class="detail-panel">'
             f'<div class="detail-panel-title">🟢 OPERATIONAL {asset_label.upper()}S'

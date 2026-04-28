@@ -114,7 +114,22 @@ def render_ontology_engine():
         st.markdown("Modify the baseline requirements for joint operations.")
         
         rules = load_rules()
-        edit_action = st.selectbox("Select Logic to Edit:", list(rules.keys()))
+        
+        st.markdown("#### Global Thresholds")
+        current_threshold = rules.get("__global_settings__", {}).get("operational_threshold", 5)
+        new_threshold = st.number_input("Global Operational Base Score Threshold", min_value=0, max_value=100, value=current_threshold)
+        
+        if st.button("Update Global Threshold"):
+            from agents.ontology_engine import set_operational_threshold
+            set_operational_threshold(new_threshold)
+            st.success(f"Global threshold updated to {new_threshold}. Neo4j database nodes have been re-evaluated.")
+            
+        st.markdown("---")
+        st.markdown("#### Specific Action Rules")
+        
+        # Filter out __global_settings__ from the selectbox
+        action_keys = [k for k in rules.keys() if k != "__global_settings__"]
+        edit_action = st.selectbox("Select Logic to Edit:", action_keys)
         
         rule = rules[edit_action]
         with st.form("edit_logic_form"):
@@ -128,7 +143,11 @@ def render_ontology_engine():
                     "description": desc,
                     "iaf_min_operational": iaf_min,
                     "army_min_operational": army_min,
-                    "navy_min_operational": navy_min
+                    "navy_min_operational": navy_min,
+                    "logic_mode": rule.get("logic_mode", "standard"),
+                    "iaf_sufficient_alone": rule.get("iaf_sufficient_alone", False),
+                    "army_enhances": rule.get("army_enhances", False),
+                    "army_enhancement_threshold": rule.get("army_enhancement_threshold", 0)
                 }
                 save_rules(rules)
                 st.success("Ontology logic updated successfully!")

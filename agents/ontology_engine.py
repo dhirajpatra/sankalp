@@ -39,6 +39,49 @@ def load_rules():
         return json.load(f)
 
 
+def get_operational_threshold():
+    rules = load_rules()
+    return rules.get("__global_settings__", {}).get("operational_threshold", 5)
+
+def set_operational_threshold(threshold):
+    rules = load_rules()
+    if "__global_settings__" not in rules:
+        rules["__global_settings__"] = {}
+    rules["__global_settings__"]["operational_threshold"] = threshold
+    save_rules(rules)
+    update_neo4j_operational_status(threshold)
+
+def update_neo4j_operational_status(threshold):
+    try:
+        driver = get_neo4j_driver()
+        with driver.session() as session:
+            session.run("""
+                MATCH (a:Aircraft)
+                SET a.operational_status = CASE 
+                    WHEN a.readiness_base_score >= $threshold THEN 'Operational'
+                    WHEN a.readiness_base_score >= ($threshold - 20) THEN 'Watch'
+                    ELSE 'Critical' END
+            """, threshold=threshold)
+            
+            session.run("""
+                MATCH (aa:ArmyAsset)
+                SET aa.operational_status = CASE 
+                    WHEN aa.readiness_base_score >= $threshold THEN 'Operational'
+                    WHEN aa.readiness_base_score >= ($threshold - 20) THEN 'Watch'
+                    ELSE 'Critical' END
+            """, threshold=threshold)
+            
+            session.run("""
+                MATCH (v:Vessel)
+                SET v.operational_status = CASE 
+                    WHEN v.readiness_base_score >= $threshold THEN 'Operational'
+                    WHEN v.readiness_base_score >= ($threshold - 20) THEN 'Watch'
+                    ELSE 'Critical' END
+            """, threshold=threshold)
+        driver.close()
+    except Exception as e:
+        logger.error(f"Failed to update operational status in Neo4j: {e}")
+
 def _write_default_rules():
     os.makedirs("data/processed", exist_ok=True)
     default = {
@@ -85,28 +128,13 @@ def get_current_capabilities():
         driver = get_neo4j_driver()
         caps = {"iaf_op": 0, "army_op": 0, "navy_op": 0}
         with driver.session() as session:
-            res = session.run(
-                "MATCH (a:Aircraft) WHERE "
-                "coalesce(a.final_readiness_score, coalesce(a.readiness_base_score, "
-                "100 - (toFloat(coalesce(a.flight_hours, 0)) * 0.8))) >= 60 "
-                "RETURN COUNT(a)"
-            )
+            res = session.run("MATCH (a:Aircraft) WHERE a.operational_status = 'Operational' RETURN COUNT(a)")
             caps["iaf_op"] = res.single()[0]
 
-            res = session.run(
-                "MATCH (a:ArmyAsset) WHERE "
-                "coalesce(a.final_readiness_score, coalesce(a.readiness_base_score, "
-                "100 - (toFloat(coalesce(a.operational_hours, 0)) * 0.5))) >= 60 "
-                "RETURN COUNT(a)"
-            )
+            res = session.run("MATCH (a:ArmyAsset) WHERE a.operational_status = 'Operational' RETURN COUNT(a)")
             caps["army_op"] = res.single()[0]
 
-            res = session.run(
-                "MATCH (v:Vessel) WHERE "
-                "coalesce(v.final_readiness_score, coalesce(v.readiness_base_score, "
-                "100 - (toFloat(coalesce(v.sea_hours, 0)) * 0.2))) >= 60 "
-                "RETURN COUNT(v)"
-            )
+            res = session.run("MATCH (v:Vessel) WHERE v.operational_status = 'Operational' RETURN COUNT(v)")
             caps["navy_op"] = res.single()[0]
         driver.close()
         return caps
@@ -350,6 +378,5 @@ def ask_llm_groq(query: str) -> str:
     except Exception as e:
         logger.error(f"Groq API error: {e}")
         return (
-            f"⚠️ **Groq API error:** `{e}`\n\n"
-            f"Model: `{llm_model}` — verify at https://console.groq.com"
+            f"⚠️ **Groq API error:**"
         )

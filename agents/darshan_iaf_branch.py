@@ -4,6 +4,7 @@ import string
 from datetime import date
 from darshan_db_helper import load_iaf, _get_neo4j_driver, _score_color, _score_badge
 from darshan_branch_renders import clickable_metrics_row, render_metric_detail, render_readiness_chart
+from agents.ontology_engine import get_operational_threshold
 
 # ────────────────────────────────────────────────────────────────────────────
 #  IAF BRANCH
@@ -35,9 +36,10 @@ def render_iaf():
         type_col  = "aircraft_type" if "aircraft_type" in aircraft_df.columns else "type"
 
         scores = aircraft_df[score_col]
-        op   = int((scores >= 60).sum())
-        warn = int(((scores >= 40) & (scores < 60)).sum())
-        crit = int((scores < 40).sum())
+        t = get_operational_threshold()
+        op   = int((scores >= t).sum())
+        warn = int(((scores >= max(0, t - 20)) & (scores < t)).sum())
+        crit = int((scores < max(0, t - 20)).sum())
 
         # Reset panel if branch changed
         if st.session_state.metric_panel not in (None, "critical", "watch", "operational", "crew", "missions"):

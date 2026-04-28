@@ -34,8 +34,21 @@ logger = logging.getLogger("bandhan")
 GOLD_DB    = "data/processed/sankalp_gold.db"
 NEO4J_URI  = os.getenv("NEO4J_URI",      "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER",     "neo4j")
-NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "sankalp123")
+NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "password")
 
+
+def _get_status(score):
+    import json
+    threshold = 5
+    try:
+        with open("data/processed/ontology_rules.json", "r") as f:
+            rules = json.load(f)
+            threshold = rules.get("__global_settings__", {}).get("operational_threshold", 5)
+    except Exception:
+        pass
+    if score >= threshold: return "Operational"
+    if score >= (threshold - 20): return "Watch"
+    return "Critical"
 
 def get_driver(retries: int = 5, delay: int = 2):
     for attempt in range(retries):
@@ -59,6 +72,24 @@ def get_driver(retries: int = 5, delay: int = 2):
 def build_ontology(gold_db: str = GOLD_DB) -> dict:
     driver = get_driver()
     conn = sqlite3.connect(gold_db)
+
+    SQUADRON_LOCATIONS = {
+        "Tigers": "Punjab (Northern Border)",
+        "Tuskers": "Jammu (Northern Border)",
+        "Winged Arrows": "Ladakh (Northern Border)",
+        "Oorials": "Kashmir (Northern Border)",
+        "Wolfpack": "Punjab (Northern Border)",
+        "Eight Pursoots": "Rajasthan (Western Border)",
+        "Flying Lancers": "Gujarat (Western Border)",
+        "Black Cobras": "Rajasthan (Western Border)",
+        "Bulls": "Gujarat (Western Border)",
+        "Flying Bullets": "Assam (Eastern Border)",
+        "Dragons": "Arunachal (Eastern Border)",
+        "Battle Axes": "Assam (Eastern Border)",
+        "Eagle Squadron": "Haryana (Northern Border)",
+        "Phoenix Flight": "Punjab (Northern Border)",
+        "Night Hunters": "Rajasthan (Western Border)",
+    }
 
     import pandas as pd
     aircraft_df = pd.read_sql("SELECT * FROM aircraft_gold", conn)
@@ -93,16 +124,20 @@ def build_ontology(gold_db: str = GOLD_DB) -> dict:
                 MERGE (a:Aircraft {aircraft_id: $aircraft_id})
                 SET a.aircraft_type         = $aircraft_type,
                     a.squadron              = $squadron,
+                    a.base_location         = $base_location,
                     a.last_maintenance_date = $last_maintenance_date,
                     a.flight_hours          = $flight_hours,
-                    a.readiness_base_score  = $readiness_base_score
+                    a.readiness_base_score  = $readiness_base_score,
+                    a.operational_status    = $operational_status
                 """,
                 aircraft_id=str(row["aircraft_id"]),
                 aircraft_type=str(row.get("aircraft_type", row.get("type", "Unknown"))),
                 squadron=str(row.get("squadron", "")),
+                base_location=SQUADRON_LOCATIONS.get(str(row.get("squadron", "")), "Unknown Location"),
                 last_maintenance_date=str(row.get("last_maintenance_date", "")),
                 flight_hours=float(row.get("flight_hours", 0)),
                 readiness_base_score=float(row.get("readiness_base_score", 0)),
+                operational_status=_get_status(float(row.get("readiness_base_score", 0))),
             )
         stats["aircraft"] = len(aircraft_df)
         logger.info(f"Upserted {len(aircraft_df)} :Aircraft nodes.")

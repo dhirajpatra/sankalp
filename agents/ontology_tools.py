@@ -41,9 +41,13 @@ def text_to_cypher(query: str, groq_client):
 Do not output any markdown formatting, no explanations, no backticks. Only the raw Cypher string.
 
 Ontology Schema:
-- (a:Aircraft {aircraft_id, aircraft_type, squadron, flight_hours, operational_status, readiness_base_score})
+- (a:Aircraft {aircraft_id, aircraft_type, squadron, base_location, flight_hours, operational_status, readiness_base_score})
+  * Note: 'base_location' contains the state and border region (e.g. "Punjab (Northern Border)"). Use it for geography questions.
+  * Note: To check if an aircraft is "operational" or "ready", you MUST use the condition: `a.operational_status = 'Operational'`.
 - (aa:ArmyAsset {asset_id, asset_type, unit, operational_hours, operational_status, readiness_base_score})
+  * Note: To check if an asset is "operational", use: `aa.operational_status = 'Operational'`.
 - (v:Vessel {vessel_id, vessel_type, flotilla, sea_hours, operational_status, readiness_base_score})
+  * Note: To check if a vessel is "operational" or "seaworthy", use: `v.operational_status = 'Operational'`.
 - (c:Crew {crew_id, name, rank}), (nc:NavyCrew), (ap:ArmyPersonnel)
 - (m:Mission {mission_id, date, mission_type}), (s:Sortie), (ao:ArmyOperation)
 
@@ -54,6 +58,20 @@ Relationships:
 - (ArmyPersonnel)-[:ENGAGED_IN]->(ArmyOperation)
 - (Vessel)-[:SAILED_FOR]->(Sortie)
 - (NavyCrew)-[:ASSIGNED_TO]->(Sortie)
+
+CRITICAL RULES:
+1. DO NOT chain multiple nodes (e.g. Aircraft->Mission->Crew->Sortie->Vessel) unless explicitly asked to find a relationship path. Keep queries simple.
+2. If asked about Aircraft readiness, ONLY use `MATCH (a:Aircraft)`.
+3. If asked about Army readiness, ONLY use `MATCH (aa:ArmyAsset)`.
+4. If asked about Navy readiness, ONLY use `MATCH (v:Vessel)`.
+5. DO NOT hallucinate properties. For example, Vessels do NOT have a `base_location`.
+
+Examples:
+Q: How many operational aircraft are at the Northern Border?
+A: MATCH (a:Aircraft) WHERE a.base_location CONTAINS 'Northern Border' AND a.operational_status = 'Operational' RETURN count(a)
+
+Q: Are there enough army assets ready in the eastern border?
+A: MATCH (aa:ArmyAsset) WHERE aa.unit CONTAINS 'Eastern' AND aa.operational_status = 'Operational' RETURN count(aa)
 """
     
     llm_model = os.getenv("MODEL", "llama-3.1-8b-instant").strip('"\'')
