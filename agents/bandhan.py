@@ -1,7 +1,10 @@
 """
-Bandhan (बंधन) – Sankalp Ontology Agent
+Bandhan (बंधन) – Sankalp Ontology Agent (IAF)
 DRDO requirement: Build a knowledge graph representing asset lineage across
 Indian Air Force platforms, crew, and mission operations.
+
+NOTE: Uses MERGE (upsert) instead of DETACH DELETE ALL so that Army and Navy
+nodes written by bandhan_army.py / bandhan_navy.py are never wiped.
 """
 
 import sqlite3
@@ -10,24 +13,31 @@ import os
 import time
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+# Walk up from agents/ to find .env in project root (local dev).
+# In Docker, env vars are injected directly — no .env file needed.
+def _load_env():
+    candidate = Path(__file__).resolve().parent
+    for _ in range(4):
+        env_file = candidate / ".env"
+        if env_file.exists():
+            load_dotenv(dotenv_path=env_file, override=True)
+            return
+        candidate = candidate.parent
+
+_load_env()
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s [Bandhan] %(message)s")
 logger = logging.getLogger("bandhan")
 
-GOLD_DB = "data/processed/sankalp_gold.db"
-NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-NEO4J_USER = os.getenv("NEO4J_USER")
-NEO4J_PASS = os.getenv("NEO4J_PASSWORD")
+GOLD_DB    = "data/processed/sankalp_gold.db"
+NEO4J_URI  = os.getenv("NEO4J_URI",      "bolt://localhost:7687")
+NEO4J_USER = os.getenv("NEO4J_USER",     "neo4j")
+NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "sankalp123")
 
 
 def get_driver(retries: int = 5, delay: int = 2):
-    """
-    Connect to Neo4j with retry logic.
-    retries: number of connection attempts
-    delay: initial delay in seconds (exponential backoff)
-    """
     for attempt in range(retries):
         try:
             driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASS))
@@ -52,7 +62,7 @@ def build_ontology(gold_db: str = GOLD_DB) -> dict:
 
     import pandas as pd
     aircraft_df = pd.read_sql("SELECT * FROM aircraft_gold", conn)
-    crew_df = pd.read_sql("SELECT * FROM crew_gold", conn)
+    crew_df     = pd.read_sql("SELECT * FROM crew_gold", conn)
     missions_df = pd.read_sql("SELECT * FROM missions_gold", conn)
     conn.close()
 
@@ -61,22 +71,22 @@ def build_ontology(gold_db: str = GOLD_DB) -> dict:
     if driver is None:
         logger.warning("Neo4j unavailable – ontology not persisted. Returning mock stats.")
         stats = {
-            "aircraft": len(aircraft_df),
-            "crew": len(crew_df),
-            "missions": len(missions_df),
+            "aircraft":      len(aircraft_df),
+            "crew":          len(crew_df),
+            "missions":      len(missions_df),
             "relationships": len(missions_df) * 2,
-            "mode": "offline",
+            "mode":          "offline",
         }
         return stats
 
     with driver.session() as session:
-        # Clear existing graph
-        session.run("MATCH (n) DETACH DELETE n")
-        logger.info("Cleared existing ontology graph.")
+        # ── Delete only IAF nodes so Army/Navy data is preserved ──────────────
+        session.run("MATCH (n:Aircraft)  DETACH DELETE n")
+        session.run("MATCH (n:Crew)      DETACH DELETE n")
+        session.run("MATCH (n:Mission)   DETACH DELETE n")
+        logger.info("Cleared existing IAF ontology nodes (Aircraft, Crew, Mission).")
 
-        # Create :Aircraft nodes
-        # NOTE: Use explicit params — 'type' is a reserved Cypher keyword and
-        # cannot be passed via **row.to_dict(). The CSV column is 'aircraft_type'.
+        # ── :Aircraft nodes ───────────────────────────────────────────────────
         for _, row in aircraft_df.iterrows():
             session.run(
                 """
@@ -95,9 +105,9 @@ def build_ontology(gold_db: str = GOLD_DB) -> dict:
                 readiness_base_score=float(row.get("readiness_base_score", 0)),
             )
         stats["aircraft"] = len(aircraft_df)
-        logger.info(f"Created {len(aircraft_df)} :Aircraft nodes.")
+        logger.info(f"Upserted {len(aircraft_df)} :Aircraft nodes.")
 
-        # Create :Crew nodes
+        # ── :Crew nodes ───────────────────────────────────────────────────────
         for _, row in crew_df.iterrows():
             session.run(
                 """
@@ -112,9 +122,9 @@ def build_ontology(gold_db: str = GOLD_DB) -> dict:
                 aircraft_type_qualified=str(row.get("aircraft_type_qualified", "")),
             )
         stats["crew"] = len(crew_df)
-        logger.info(f"Created {len(crew_df)} :Crew nodes.")
+        logger.info(f"Upserted {len(crew_df)} :Crew nodes.")
 
-        # Create :Mission nodes + relationships
+        # ── :Mission nodes + relationships ────────────────────────────────────
         rel_count = 0
         for _, row in missions_df.iterrows():
             session.run(
@@ -138,9 +148,10 @@ def build_ontology(gold_db: str = GOLD_DB) -> dict:
                 crew_id=str(row["crew_id"]),
             )
             rel_count += 2
-        stats["missions"] = len(missions_df)
+
+        stats["missions"]      = len(missions_df)
         stats["relationships"] = rel_count
-        logger.info(f"Created {len(missions_df)} :Mission nodes, {rel_count} relationships.")
+        logger.info(f"Upserted {len(missions_df)} :Mission nodes, {rel_count} relationships.")
 
     driver.close()
     return stats
