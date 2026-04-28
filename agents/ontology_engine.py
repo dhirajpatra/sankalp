@@ -332,8 +332,8 @@ def ask_llm_groq(query: str) -> str:
                 messages=messages,
                 tools=tools_schema,
                 tool_choice="auto",
-                temperature=0.2,
-                max_completion_tokens=2048,
+                temperature=0.1,
+                max_completion_tokens=1024,
             )
             response_message = completion.choices[0].message
 
