@@ -1,0 +1,22 @@
+{
+    "protect northern border from any type of infiltration": {
+        "iaf_min_operational": 5,
+        "army_min_operational": 0,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": true,
+        "army_enhances": true,
+        "army_enhancement_threshold": 10,
+        "description": "IAF alone can handle northern border infiltration with air superiority. If Army assets (>=10) are also available, the response is classified SUPERIOR with ground assault capability.",
+        "logic_mode": "iaf_primary_army_superior"
+    },
+    "attack terrorist infiltration from our southern sea borders": {
+        "iaf_min_operational": 2,
+        "army_min_operational": 0,
+        "navy_min_operational": 8,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "description": "Requires fleet of Navy vessels for blockade and IAF recon support.",
+        "logic_mode": "standard"
+    }
+}

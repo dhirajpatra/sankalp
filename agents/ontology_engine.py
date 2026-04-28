@@ -8,24 +8,19 @@ from dotenv import load_dotenv
 logger = logging.getLogger("ontology_engine")
 
 # ── .env loading ──────────────────────────────────────────────────────────────
-# Docker injects env vars directly via docker-compose environment: block,
-# so no .env file exists inside the container.  For local dev, search upward
-# from this file's location until we find a .env, then load it.
 def _load_env():
-    candidate = Path(__file__).resolve().parent  # start at agents/
-    for _ in range(4):                            # walk up at most 4 levels
+    candidate = Path(__file__).resolve().parent
+    for _ in range(4):
         env_file = candidate / ".env"
         if env_file.exists():
             load_dotenv(dotenv_path=env_file, override=True)
             logger.info(f"Loaded .env from {env_file}")
             return
         candidate = candidate.parent
-    # Not found – Docker has already injected everything via environment:
-    logger.info("No .env file found on disk; relying on environment variables (Docker mode).")
+    logger.info("No .env file found; relying on environment variables (Docker mode).")
 
 _load_env()
 
-# ── Connection config (read after env is loaded) ──────────────────────────────
 NEO4J_URI  = os.getenv("NEO4J_URI",      "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER",     "neo4j")
 NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "sankalp123")
@@ -39,22 +34,43 @@ def get_neo4j_driver():
 
 def load_rules():
     if not os.path.exists(RULES_FILE):
-        return {
-            "protect northern border from any type of infiltration": {
-                "iaf_min_operational": 5,
-                "army_min_operational": 10,
-                "navy_min_operational": 0,
-                "description": "Requires a joint strike force of IAF jets for air superiority and Army assets for ground assault."
-            },
-            "attack terrorist infiltration from our southern sea borders": {
-                "iaf_min_operational": 2,
-                "army_min_operational": 0,
-                "navy_min_operational": 8,
-                "description": "Requires fleet of Navy vessels for blockade and IAF recon support."
-            }
-        }
+        _write_default_rules()
     with open(RULES_FILE, "r") as f:
         return json.load(f)
+
+
+def _write_default_rules():
+    os.makedirs("data/processed", exist_ok=True)
+    default = {
+        "protect northern border from any type of infiltration": {
+            "iaf_min_operational": 5,
+            "army_min_operational": 0,
+            "navy_min_operational": 0,
+            "iaf_sufficient_alone": True,
+            "army_enhances": True,
+            "army_enhancement_threshold": 10,
+            "description": (
+                "IAF alone can handle northern border infiltration with air superiority. "
+                "If Army assets (>=10) are also available, the response is classified "
+                "SUPERIOR with ground assault capability."
+            ),
+            "logic_mode": "iaf_primary_army_superior"
+        },
+        "attack terrorist infiltration from our southern sea borders": {
+            "iaf_min_operational": 2,
+            "army_min_operational": 0,
+            "navy_min_operational": 8,
+            "iaf_sufficient_alone": False,
+            "army_enhances": False,
+            "army_enhancement_threshold": 0,
+            "description": (
+                "Requires fleet of Navy vessels for blockade and IAF recon support."
+            ),
+            "logic_mode": "standard"
+        }
+    }
+    with open(RULES_FILE, "w") as f:
+        json.dump(default, f, indent=4)
 
 
 def save_rules(rules):
@@ -99,86 +115,140 @@ def get_current_capabilities():
         return {"iaf_op": 0, "army_op": 0, "navy_op": 0}
 
 
-def evaluate_action(action_name):
+def evaluate_action(action_name: str):
+    """
+    Evaluate whether a named doctrine action can be executed.
+
+    logic_mode = "iaf_primary_army_superior":
+        - IAF meeting its minimum alone = CAN EXECUTE (air-only response)
+        - IAF + Army both meeting thresholds = SUPERIOR RESPONSE
+        - IAF below minimum = CANNOT EXECUTE regardless of Army
+
+    logic_mode = "standard":
+        - All branch minimums must be met simultaneously
+    """
     rules = load_rules()
     if action_name not in rules:
         return False, [f"Action '{action_name}' not defined in ontology logic."]
 
-    rule = rules[action_name]
-    caps = get_current_capabilities()
-    reasons = []
-    can_execute = True
+    rule  = rules[action_name]
+    caps  = get_current_capabilities()
+    mode  = rule.get("logic_mode", "standard")
 
-    if caps["iaf_op"] < rule["iaf_min_operational"]:
-        can_execute = False
-        reasons.append(f"❌ **IAF**: Need {rule['iaf_min_operational']} operational aircraft, but only have {caps['iaf_op']}.")
+    reasons     = []
+    can_execute = False
+    tier        = None   # "SUPERIOR" | "ADEQUATE" | "INSUFFICIENT"
+
+    if mode == "iaf_primary_army_superior":
+        iaf_ok   = caps["iaf_op"] >= rule["iaf_min_operational"]
+        army_enh = rule.get("army_enhances", False)
+        army_thr = rule.get("army_enhancement_threshold", 0)
+        army_ok  = caps["army_op"] >= army_thr if army_enh else False
+
+        if iaf_ok and army_ok:
+            can_execute = True
+            tier = "SUPERIOR"
+            reasons.append(
+                f"✅ **IAF**: {caps['iaf_op']} operational aircraft "
+                f"(minimum {rule['iaf_min_operational']}) — air superiority confirmed."
+            )
+            reasons.append(
+                f"✅ **Army**: {caps['army_op']} operational assets "
+                f"(enhancement threshold {army_thr}) — ground assault capability added. "
+                f"**Response tier: 🏆 SUPERIOR**"
+            )
+        elif iaf_ok:
+            can_execute = True
+            tier = "ADEQUATE"
+            reasons.append(
+                f"✅ **IAF**: {caps['iaf_op']} operational aircraft "
+                f"(minimum {rule['iaf_min_operational']}) — air-only response possible."
+            )
+            if army_enh:
+                reasons.append(
+                    f"⚠️  **Army**: {caps['army_op']} operational assets "
+                    f"(enhancement threshold {army_thr} not met) — "
+                    f"ground support unavailable. **Response tier: 🟡 ADEQUATE (Air Only)**"
+                )
+        else:
+            can_execute = False
+            tier = "INSUFFICIENT"
+            reasons.append(
+                f"❌ **IAF**: {caps['iaf_op']} operational aircraft — "
+                f"minimum {rule['iaf_min_operational']} required. "
+                f"**Cannot execute — no air superiority.**"
+            )
+            if army_enh:
+                army_status = "✅" if army_ok else "⚠️ "
+                reasons.append(
+                    f"{army_status} **Army**: {caps['army_op']} assets available, "
+                    f"but IAF shortfall prevents execution. "
+                    f"**Response tier: 🔴 INSUFFICIENT**"
+                )
+
+        # Navy not required for northern border — just note it
+        reasons.append(
+            f"ℹ️  **Navy**: {caps['navy_op']} seaworthy vessels "
+            f"(not required for this doctrine)."
+        )
+
     else:
-        reasons.append(f"✅ **IAF**: Have {caps['iaf_op']} operational aircraft (requires {rule['iaf_min_operational']}).")
+        # Standard mode — all minimums must be met
+        iaf_ok   = caps["iaf_op"]   >= rule["iaf_min_operational"]
+        army_ok  = caps["army_op"]  >= rule["army_min_operational"]
+        navy_ok  = caps["navy_op"]  >= rule["navy_min_operational"]
+        can_execute = iaf_ok and army_ok and navy_ok
 
-    if caps["army_op"] < rule["army_min_operational"]:
-        can_execute = False
-        reasons.append(f"❌ **Army**: Need {rule['army_min_operational']} operational assets, but only have {caps['army_op']}.")
-    else:
-        reasons.append(f"✅ **Army**: Have {caps['army_op']} operational assets (requires {rule['army_min_operational']}).")
+        def _fmt(label, actual, required, ok):
+            mark = "✅" if ok else "❌"
+            return f"{mark} **{label}**: {actual} available (requires {required})."
 
-    if caps["navy_op"] < rule["navy_min_operational"]:
-        can_execute = False
-        reasons.append(f"❌ **Navy**: Need {rule['navy_min_operational']} seaworthy vessels, but only have {caps['navy_op']}.")
-    else:
-        reasons.append(f"✅ **Navy**: Have {caps['navy_op']} seaworthy vessels (requires {rule['navy_min_operational']}).")
+        reasons.append(_fmt("IAF",  caps["iaf_op"],  rule["iaf_min_operational"],  iaf_ok))
+        reasons.append(_fmt("Army", caps["army_op"], rule["army_min_operational"], army_ok))
+        reasons.append(_fmt("Navy", caps["navy_op"], rule["navy_min_operational"], navy_ok))
+        tier = "ADEQUATE" if can_execute else "INSUFFICIENT"
 
-    return can_execute, reasons
+    return can_execute, reasons, tier
 
 
 def _resolve_api_key() -> str:
-    """
-    Reads Groq API key from environment.
-    Works in both Docker (env vars injected by compose) and local dev (.env file).
-    Calls _load_env() again to catch any late .env writes.
-    """
-    _load_env()  # no-op in Docker; re-reads .env for local dev
-
+    _load_env()
     PLACEHOLDERS = {"fdsfdfas", "your_api_key_here", "changeme", "xxxx",
                     "gsk_...", "gsk_your_real_key", ""}
-    var_names = ["GROQ_API_KEY", "GROQ_LLM_API_KEY", "LLM_API_KEY"]
-
-    for var in var_names:
+    for var in ["GROQ_API_KEY", "GROQ_LLM_API_KEY", "LLM_API_KEY"]:
         raw = os.getenv(var, "")
         cleaned = raw.strip().strip("\"'")
         if cleaned and cleaned.lower() not in PLACEHOLDERS:
-            logger.info(f"Groq key resolved from env var: {var}")
+            logger.info(f"Groq key resolved from: {var}")
             return cleaned
-
-    logger.error(
-        "No valid Groq API key found in environment. "
-        + " | ".join(f"{v}={os.getenv(v, '<not set>')!r}" for v in var_names)
-    )
+    logger.error("No valid Groq API key found in environment.")
     return ""
 
 
 def ask_llm_groq(query: str) -> str:
-    """Uses Groq API to answer a natural language question based on ontology state."""
+    """
+    Uses Groq API with live Neo4j context and the doctrine rules.
+    The system prompt explicitly teaches the LLM about the
+    iaf_primary_army_superior logic so it reasons correctly.
+    """
     api_key = _resolve_api_key()
 
     if not api_key:
-        # Show exactly what env vars Docker has so the user can debug
         var_names = ["GROQ_API_KEY", "GROQ_LLM_API_KEY", "LLM_API_KEY"]
         env_dump = "\n".join(
             f"- `{v}` = `{os.getenv(v, '<not set>')}`" for v in var_names
         )
         return (
             "⚠️ **Groq API key not found in environment.**\n\n"
-            f"**Current env var values seen by the app:**\n{env_dump}\n\n"
-            "**If running via Docker Compose**, add to your `docker-compose.yml` "
-            "under the `agents:` service `environment:` block:\n"
+            f"**Current env var values:**\n{env_dump}\n\n"
+            "**Docker Compose** — add to `agents:` → `environment:`:\n"
             "```yaml\n      GROQ_API_KEY: your_gsk_key_here\n```\n"
-            "Then restart: `docker compose down && docker compose up -d`\n\n"
-            "**If running locally**, ensure `.env` in the project root contains:\n"
+            "Then: `docker compose down && docker compose up -d`\n\n"
+            "**Local dev** — add to `.env`:\n"
             "```\nGROQ_API_KEY=gsk_your_real_key\n```"
         )
 
     llm_model = os.getenv("MODEL", "llama-3.1-8b-instant").strip("\"'")
-    # Strip any provider prefix e.g. "llama/llama-3.1-8b-instant" → "llama-3.1-8b-instant"
     if "/" in llm_model:
         llm_model = llm_model.split("/")[-1]
 
@@ -186,21 +256,33 @@ def ask_llm_groq(query: str) -> str:
     rules = load_rules()
 
     system_prompt = (
-        "You are 'Sankalp-AI', the master defence intelligence ontology AI for the Indian Armed Forces. "
-        "Answer operational questions concisely and decisively like a high-ranking military commander. "
-        "Use the provided live data to answer. If numbers don't support an action, clearly state why.\n\n"
-        f"CURRENT FLEET CAPABILITIES (Live Neo4j Digital Twin):\n"
-        f"- IAF: {caps['iaf_op']} Operational Aircraft\n"
-        f"- Army: {caps['army_op']} Operational Assets\n"
-        f"- Navy: {caps['navy_op']} Seaworthy Vessels\n\n"
-        f"DOCTRINE RULES:\n{json.dumps(rules, indent=2)}\n"
+        "You are 'Sankalp-AI', the master defence intelligence ontology AI "
+        "for the Indian Armed Forces. Answer like a decisive senior military commander.\n\n"
+
+        "## DOCTRINE LOGIC RULES\n"
+        "Some actions follow 'iaf_primary_army_superior' mode:\n"
+        "  - IAF alone meeting its minimum → CAN EXECUTE (air-only, ADEQUATE tier)\n"
+        "  - IAF + Army both meeting thresholds → CAN EXECUTE (SUPERIOR tier — "
+        "ground assault adds decisive advantage)\n"
+        "  - IAF below minimum → CANNOT EXECUTE (no air superiority) even if Army is ready\n\n"
+
+        "## LIVE FLEET STATUS (Neo4j Digital Twin)\n"
+        f"- IAF: {caps['iaf_op']} operational aircraft\n"
+        f"- Army: {caps['army_op']} operational assets\n"
+        f"- Navy: {caps['navy_op']} seaworthy vessels\n\n"
+
+        "## CONFIGURED DOCTRINE RULES\n"
+        f"{json.dumps(rules, indent=2)}\n\n"
+
+        "When answering, state the response tier clearly: "
+        "🏆 SUPERIOR, 🟡 ADEQUATE, or 🔴 INSUFFICIENT. "
+        "Be specific about which branch meets or fails the threshold."
     )
 
     try:
         from groq import Groq
         client = Groq(api_key=api_key)
 
-        # Try agentic tool use
         try:
             from agents.ontology_tools import tools_schema, text_to_cypher, similarity_search
             _use_tools = True
@@ -250,7 +332,6 @@ def ask_llm_groq(query: str) -> str:
                         "tool_call_id": tc.id, "role": "tool",
                         "name": fn_name, "content": result
                     })
-
                 second = client.chat.completions.create(
                     model=llm_model, messages=messages,
                     temperature=0.2, stream=True,
@@ -261,10 +342,8 @@ def ask_llm_groq(query: str) -> str:
 
         else:
             completion = client.chat.completions.create(
-                model=llm_model,
-                messages=messages,
-                temperature=0.2,
-                max_completion_tokens=2048,
+                model=llm_model, messages=messages,
+                temperature=0.2, max_completion_tokens=2048,
             )
             return completion.choices[0].message.content or ""
 
@@ -272,6 +351,5 @@ def ask_llm_groq(query: str) -> str:
         logger.error(f"Groq API error: {e}")
         return (
             f"⚠️ **Groq API error:** `{e}`\n\n"
-            f"Model used: `{llm_model}`\n"
-            "Verify the key is valid at https://console.groq.com"
+            f"Model: `{llm_model}` — verify at https://console.groq.com"
         )
