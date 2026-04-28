@@ -147,6 +147,10 @@ st.sidebar.markdown(f"**🎯 Missions:** {len(missions_df)}")
 st.sidebar.markdown("---")
 st.sidebar.caption("Agents: Ganana · Shodhan · Bandhan · Bhavishyavani · Darshan")
 
+# --- Initialize session state for tabs ---
+if "tab_index" not in st.session_state:
+    st.session_state.tab_index = 0
+
 # --- Main ---
 st.title("🛡️ SANKALP — भारतीय वायु सेना Digital Twin")
 st.caption("Open Source Ontology Platform | IAF Asset Intelligence")
@@ -160,13 +164,15 @@ with tabs[0]:
     for i, (_, row) in enumerate(aircraft_df.iterrows()):
         score = row.get("final_readiness_score", row.get("readiness_base_score", 0))
         color = "#00e676" if score >= 60 else "#ff9800" if score >= 40 else "#ff4b4b"
+        aircraft_type = row.get("aircraft_type", row.get("type", "Unknown"))
+        squadron = row.get("squadron", "N/A")
         with cols[i]:
             st.markdown(
                 f"""<div class="metric-card">
                 <div style="font-size:11px; color:#888">{row['aircraft_id']}</div>
-                <div style="font-size:14px; font-weight:bold; color:#c8d6e5">{row['aircraft_type']}</div>
+                <div style="font-size:14px; font-weight:bold; color:#c8d6e5">{aircraft_type}</div>
                 <div style="font-size:28px; font-weight:bold; color:{color}">{score:.0f}%</div>
-                <div style="font-size:11px; color:#555">{row['squadron']}</div>
+                <div style="font-size:11px; color:#555">{squadron}</div>
                 </div>""",
                 unsafe_allow_html=True,
             )
@@ -177,7 +183,7 @@ with tabs[0]:
             columns={"aircraft_id": "ID", "aircraft_type": "Type", "squadron": "Squadron",
                      "flight_hours": "Flight Hrs", "last_maintenance_date": "Last Maint."}
         ),
-        use_container_width=True,
+        width='stretch',
     )
 
 # Tab 2: Aircraft Detail
@@ -187,12 +193,12 @@ with tabs[1]:
     row = aircraft_df[aircraft_df["aircraft_id"] == selected_id].iloc[0]
 
     c1, c2, c3 = st.columns(3)
-    c1.metric("Type", row["aircraft_type"])
-    c2.metric("Squadron", row["squadron"])
-    c3.metric("Flight Hours", f"{row['flight_hours']:.0f} hrs")
+    c1.metric("Type", row.get("aircraft_type", row.get("type", "Unknown")))
+    c2.metric("Squadron", row.get("squadron", "N/A"))
+    c3.metric("Flight Hours", f"{float(row.get('flight_hours', 0)):.0f} hrs")
 
     score = row.get("final_readiness_score", row.get("readiness_base_score", 0))
-    st.metric("Readiness Score", f"{score:.1f}%",
+    st.metric("Readiness Score", f"{float(score):.1f}%",
               delta="Operational" if score >= 60 else "Needs Attention")
 
     st.markdown("**Mission History**")
@@ -206,7 +212,7 @@ with tabs[1]:
                 columns={"mission_id": "Mission ID", "date": "Date", "mission_type": "Type",
                          "fuel_used": "Fuel (L)", "name": "Crew", "rank": "Rank"}
             ),
-            use_container_width=True,
+            width='stretch',
         )
     else:
         st.info("No missions logged for this aircraft.")
@@ -237,15 +243,18 @@ with tabs[2]:
 # Tab 4: Readiness Alert
 with tabs[3]:
     st.subheader("⚠️ Maintenance Alert — Bottom Readiness Aircraft")
-    at_risk_df = aircraft_df.sort_values(
-        "final_readiness_score" if "final_readiness_score" in aircraft_df.columns else "readiness_base_score"
-    ).head(3)
+    if not aircraft_df.empty:
+        sort_col = "final_readiness_score" if "final_readiness_score" in aircraft_df.columns else "readiness_base_score"
+        at_risk_df = aircraft_df.sort_values(sort_col).head(3)
 
-    for _, row in at_risk_df.iterrows():
-        score = row.get("final_readiness_score", row.get("readiness_base_score", 0))
-        status = "🔴 CRITICAL" if score < 40 else "🟡 WATCH"
-        with st.expander(f"{status} — {row['aircraft_id']} ({row['aircraft_type']}) | Score: {score:.1f}%"):
-            st.write(f"**Squadron:** {row['squadron']}")
-            st.write(f"**Flight Hours:** {row['flight_hours']:.0f}")
-            st.write(f"**Last Maintenance:** {row['last_maintenance_date']}")
-            st.warning("Recommend scheduling depot-level inspection (IAF SOPs apply).")
+        for _, row in at_risk_df.iterrows():
+            score = row.get("final_readiness_score", row.get("readiness_base_score", 0))
+            status = "🔴 CRITICAL" if score < 40 else "🟡 WATCH"
+            aircraft_type = row.get("aircraft_type", row.get("type", "Unknown"))
+            with st.expander(f"{status} — {row['aircraft_id']} ({aircraft_type}) | Score: {score:.1f}%"):
+                st.write(f"**Squadron:** {row.get('squadron', 'N/A')}")
+                st.write(f"**Flight Hours:** {float(row.get('flight_hours', 0)):.0f}")
+                st.write(f"**Last Maintenance:** {row.get('last_maintenance_date', 'N/A')}")
+                st.warning("Recommend scheduling depot-level inspection (IAF SOPs apply).")
+    else:
+        st.warning("No aircraft data available.")
