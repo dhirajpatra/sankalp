@@ -4,7 +4,7 @@ html,
 body,
 [class*="css"] {
     font-family: 'Exo 2', sans-serif;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 h1,
@@ -76,7 +76,7 @@ h3 {
     border-radius: 6px;
     padding: 14px 18px;
     text-align: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .metric-val {
@@ -116,7 +116,7 @@ div[data-testid="stButton"] button[kind="secondary"].metric-btn:hover {
     border-radius: 8px;
     padding: 18px 22px;
     margin-top: 12px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .detail-panel-title {
@@ -188,4 +188,9 @@ div[data-testid="stButton"] button[kind="secondary"].metric-btn:hover {
 /* Divider */
 hr {
     border-color: #d3dae6;
+}
+
+.st-emotion-cache-zy6yx3 {
+    padding-left: 2rem;
+    padding-right: 2rem;
 }
