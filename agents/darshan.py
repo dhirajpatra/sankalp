@@ -74,15 +74,17 @@ def _get_neo4j_driver():
 def _parse_status(df, score_col="final_readiness_score"):
     if not df.empty and "operational_status" in df.columns:
         df[score_col] = pd.to_numeric(df[score_col], errors="coerce").fillna(0)
-        df.loc[df["operational_status"] == "OPERATIONAL", score_col] = 100
-        df.loc[df["operational_status"] == "MAINTENANCE_REQUIRED", score_col] = 20
+        status_upper = df["operational_status"].str.upper()
+        df.loc[status_upper == "OPERATIONAL", score_col] = 100
+        df.loc[status_upper.isin(["WATCH", "NEEDS_ATTENTION", "NEEDS ATTENTION"]), score_col] = 50
+        df.loc[status_upper.isin(["MAINTENANCE_REQUIRED", "MAINTENANCE REQUIRED", "CRITICAL"]), score_col] = 20
     return df
 
 @st.cache_data(ttl=10)
 def load_iaf():
     driver = _get_neo4j_driver()
     with driver.session() as session:
-        df_a = pd.DataFrame([r.data() for r in session.run("MATCH (a:Aircraft) RETURN a.aircraft_id AS aircraft_id, coalesce(a.aircraft_type, a.type, 'Unknown') AS aircraft_type, a.squadron AS squadron, a.last_maintenance_date AS last_maintenance_date, coalesce(a.flight_hours, 0) AS flight_hours, coalesce(a.readiness_base_score, a.final_readiness_score, 0) AS final_readiness_score, coalesce(a.operational_status, '') AS operational_status")])
+        df_a = pd.DataFrame([r.data() for r in session.run("MATCH (a:Aircraft) RETURN a.aircraft_id AS aircraft_id, coalesce(a.aircraft_type, a.type, 'Unknown') AS aircraft_type, a.squadron AS squadron, a.last_maintenance_date AS last_maintenance_date, coalesce(a.flight_hours, 0) AS flight_hours, coalesce(a.readiness_base_score, 100 - (coalesce(a.flight_hours, 0) * 0.8)) AS final_readiness_score, coalesce(a.operational_status, '') AS operational_status")])
         if df_a.empty: df_a = pd.DataFrame(columns=["aircraft_id", "aircraft_type", "squadron", "last_maintenance_date", "flight_hours", "final_readiness_score", "operational_status"])
         df_a = _parse_status(df_a)
         
@@ -98,7 +100,7 @@ def load_iaf():
 def load_army():
     driver = _get_neo4j_driver()
     with driver.session() as session:
-        df_a = pd.DataFrame([r.data() for r in session.run("MATCH (a:ArmyAsset) RETURN a.asset_id AS asset_id, a.asset_type AS asset_type, a.unit AS unit, a.last_service_date AS last_service_date, coalesce(a.operational_hours, 0) AS operational_hours, coalesce(a.readiness_base_score, a.final_readiness_score, 0) AS final_readiness_score, coalesce(a.operational_status, '') AS operational_status")])
+        df_a = pd.DataFrame([r.data() for r in session.run("MATCH (a:ArmyAsset) RETURN a.asset_id AS asset_id, a.asset_type AS asset_type, a.unit AS unit, a.last_service_date AS last_service_date, coalesce(a.operational_hours, 0) AS operational_hours, coalesce(a.readiness_base_score, 100 - (coalesce(a.operational_hours, 0) * 0.5)) AS final_readiness_score, coalesce(a.operational_status, '') AS operational_status")])
         if df_a.empty: df_a = pd.DataFrame(columns=["asset_id", "asset_type", "unit", "last_service_date", "operational_hours", "final_readiness_score", "operational_status"])
         df_a = _parse_status(df_a)
         
@@ -114,7 +116,7 @@ def load_army():
 def load_navy():
     driver = _get_neo4j_driver()
     with driver.session() as session:
-        df_v = pd.DataFrame([r.data() for r in session.run("MATCH (v:Vessel) RETURN v.vessel_id AS vessel_id, v.vessel_type AS vessel_type, v.flotilla AS flotilla, v.last_refit_date AS last_refit_date, coalesce(v.sea_hours, 0) AS sea_hours, coalesce(v.readiness_base_score, v.final_readiness_score, 0) AS final_readiness_score, coalesce(v.operational_status, '') AS operational_status")])
+        df_v = pd.DataFrame([r.data() for r in session.run("MATCH (v:Vessel) RETURN v.vessel_id AS vessel_id, v.vessel_type AS vessel_type, v.flotilla AS flotilla, v.last_refit_date AS last_refit_date, coalesce(v.sea_hours, 0) AS sea_hours, coalesce(v.readiness_base_score, 100 - (coalesce(v.sea_hours, 0) * 0.2)) AS final_readiness_score, coalesce(v.operational_status, '') AS operational_status")])
         if df_v.empty: df_v = pd.DataFrame(columns=["vessel_id", "vessel_type", "flotilla", "last_refit_date", "sea_hours", "final_readiness_score", "operational_status"])
         df_v = _parse_status(df_v)
         
