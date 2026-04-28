@@ -81,6 +81,9 @@ CRITICAL RULES:
 3. Use single quotes for string values: 'Operational'
 4. NEVER invent relationships like HAS_AIRCRAFT or IS_READY
 5. For boolean checks: mission_ready = true (no quotes)
+6. **NEVER** invent labels like 'AirForce', 'SquadronNode', 'AirCraft'. Use ONLY the labels listed above: Aircraft, ArmyAsset, Vessel, Crew, Mission, ArmyOperation, Sortie.
+7. **NEVER** invent relationship types like 'HAS_AIRCRAFT', 'BELONGS_TO', 'IS_READY'. Use ONLY the relationships listed: EXECUTED, PARTICIPATED_IN, DEPLOYED_FOR, SAILED_FOR.
+8. If a natural language term (e.g., 'air force') does not directly match a label, ask for clarification or map it to the closest existing label (e.g., 'Aircraft').
 
 EXAMPLES:
 Q: Show all OPERATIONAL aircraft in Flying Bullets squadron
@@ -106,6 +109,9 @@ A: MATCH (aa:ArmyAsset) WHERE aa.operational_status = 'Operational' RETURN count
 
 Q: Show vessels that are mission ready
 A: MATCH (v:Vessel) WHERE v.mission_ready = true RETURN v.vessel_id, v.vessel_type, v.flotilla
+
+Q: Count aircraft that have executed more than 1 mission
+A: MATCH (a:Aircraft)-[:EXECUTED]->(m:Mission) WITH a, COUNT(m) AS cnt WHERE cnt > 1 RETURN COUNT(a)
 """
     
     llm_model = os.getenv("MODEL", "llama-3.1-8b-instant").strip('"\'')
@@ -134,6 +140,15 @@ A: MATCH (v:Vessel) WHERE v.mission_ready = true RETURN v.vessel_id, v.vessel_ty
         if pattern in generated_cypher and "WHERE" in generated_cypher:
             # Try to auto-correct or return error
             return f"Error: Invalid syntax detected. Please rephrase. (Contains '{pattern}')"
+
+    valid_labels = {"Aircraft", "ArmyAsset", "Vessel", "Crew", "Mission", "ArmyOperation", "Sortie"}
+    invalid_labels_found = [label for label in valid_labels if label not in generated_cypher and label.lower() in generated_cypher.lower() and "MATCH" in generated_cypher]
+    # crude but effective: reject if any MATCH uses a label not in valid_labels
+    import re
+    matches = re.findall(r'\((\w+)\s*:', generated_cypher)
+    for m in matches:
+        if m not in valid_labels and m != "a":  # basic alias detection
+            return f"Error: Invalid label '{m}' used. Please rephrase."
     
     result = execute_cypher(generated_cypher)
     return f"Executed Cypher: {generated_cypher}\nResult: {result}"
