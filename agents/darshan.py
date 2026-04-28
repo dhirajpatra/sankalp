@@ -15,10 +15,12 @@ from dotenv import load_dotenv
 
 try:
     from admin_import import render_admin_dashboard
+    from ontology_engine import evaluate_action, load_rules, save_rules, ask_llm_groq
 except ImportError:
     from agents.admin_import import render_admin_dashboard
+    from agents.ontology_engine import evaluate_action, load_rules, save_rules, ask_llm_groq
 
-load_dotenv()
+load_dotenv(override=True)
 NEO4J_URI = os.getenv("NEO4J_URI")
 NEO4J_USER = os.getenv("NEO4J_USER")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
@@ -84,7 +86,7 @@ def _parse_status(df, score_col="final_readiness_score"):
 def load_iaf():
     driver = _get_neo4j_driver()
     with driver.session() as session:
-        df_a = pd.DataFrame([r.data() for r in session.run("MATCH (a:Aircraft) RETURN a.aircraft_id AS aircraft_id, coalesce(a.aircraft_type, a.type, 'Unknown') AS aircraft_type, a.squadron AS squadron, a.last_maintenance_date AS last_maintenance_date, coalesce(a.flight_hours, 0) AS flight_hours, coalesce(a.readiness_base_score, 100 - (coalesce(a.flight_hours, 0) * 0.8)) AS final_readiness_score, coalesce(a.operational_status, '') AS operational_status")])
+        df_a = pd.DataFrame([r.data() for r in session.run("MATCH (a:Aircraft) RETURN a.aircraft_id AS aircraft_id, coalesce(a.aircraft_type, a.type, 'Unknown') AS aircraft_type, a.squadron AS squadron, a.last_maintenance_date AS last_maintenance_date, coalesce(a.flight_hours, 0) AS flight_hours, coalesce(a.readiness_base_score, 100 - (toFloat(coalesce(a.flight_hours, 0)) * 0.8)) AS final_readiness_score, coalesce(a.operational_status, '') AS operational_status")])
         if df_a.empty: df_a = pd.DataFrame(columns=["aircraft_id", "aircraft_type", "squadron", "last_maintenance_date", "flight_hours", "final_readiness_score", "operational_status"])
         df_a = _parse_status(df_a)
         
@@ -100,7 +102,7 @@ def load_iaf():
 def load_army():
     driver = _get_neo4j_driver()
     with driver.session() as session:
-        df_a = pd.DataFrame([r.data() for r in session.run("MATCH (a:ArmyAsset) RETURN a.asset_id AS asset_id, a.asset_type AS asset_type, a.unit AS unit, a.last_service_date AS last_service_date, coalesce(a.operational_hours, 0) AS operational_hours, coalesce(a.readiness_base_score, 100 - (coalesce(a.operational_hours, 0) * 0.5)) AS final_readiness_score, coalesce(a.operational_status, '') AS operational_status")])
+        df_a = pd.DataFrame([r.data() for r in session.run("MATCH (a:ArmyAsset) RETURN a.asset_id AS asset_id, a.asset_type AS asset_type, a.unit AS unit, a.last_service_date AS last_service_date, coalesce(a.operational_hours, 0) AS operational_hours, coalesce(a.readiness_base_score, 100 - (toFloat(coalesce(a.operational_hours, 0)) * 0.5)) AS final_readiness_score, coalesce(a.operational_status, '') AS operational_status")])
         if df_a.empty: df_a = pd.DataFrame(columns=["asset_id", "asset_type", "unit", "last_service_date", "operational_hours", "final_readiness_score", "operational_status"])
         df_a = _parse_status(df_a)
         
@@ -116,7 +118,7 @@ def load_army():
 def load_navy():
     driver = _get_neo4j_driver()
     with driver.session() as session:
-        df_v = pd.DataFrame([r.data() for r in session.run("MATCH (v:Vessel) RETURN v.vessel_id AS vessel_id, v.vessel_type AS vessel_type, v.flotilla AS flotilla, v.last_refit_date AS last_refit_date, coalesce(v.sea_hours, 0) AS sea_hours, coalesce(v.readiness_base_score, 100 - (coalesce(v.sea_hours, 0) * 0.2)) AS final_readiness_score, coalesce(v.operational_status, '') AS operational_status")])
+        df_v = pd.DataFrame([r.data() for r in session.run("MATCH (v:Vessel) RETURN v.vessel_id AS vessel_id, v.vessel_type AS vessel_type, v.flotilla AS flotilla, v.last_refit_date AS last_refit_date, coalesce(v.sea_hours, 0) AS sea_hours, coalesce(v.readiness_base_score, 100 - (toFloat(coalesce(v.sea_hours, 0)) * 0.2)) AS final_readiness_score, coalesce(v.operational_status, '') AS operational_status")])
         if df_v.empty: df_v = pd.DataFrame(columns=["vessel_id", "vessel_type", "flotilla", "last_refit_date", "sea_hours", "final_readiness_score", "operational_status"])
         df_v = _parse_status(df_v)
         
@@ -160,6 +162,7 @@ with st.sidebar:
         ("iaf",   "✈️", "Indian Air Force", "IAF"),
         ("army",  "🪖", "Indian Army",       "ARMY"),
         ("navy",  "⚓", "Indian Navy",       "NAVY"),
+        ("ontology", "🧠", "Ontology Engine", "LOGIC"),
         ("admin", "⚙️", "Admin / Data Import", "ADMIN"),
     ]
     for key, icon, label, short in branches:
@@ -923,6 +926,65 @@ def _show_navy_setup_hint():
     )
 
 
+# ── Ontology Engine Route ────────────────────────────────────────────────────
+def render_ontology_engine():
+    st.title("🧠 Ontology Engine (Action & Logic)")
+    st.markdown("Define complex cross-branch action requirements and query the ontology to see if current fleet readiness supports operational execution.")
+    
+    tab1, tab2 = st.tabs(["⚡ Execute Action", "⚙️ Update Logic"])
+    
+    with tab1:
+        st.subheader("Query Ontology")
+        
+        # Initialize chat history
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+
+        # Display chat messages from history on app rerun
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        # Accept user input
+        if prompt := st.chat_input("Ask Sankalp-AI an operational question..."):
+            # Display user message in chat message container
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
+
+            # Display assistant response in chat message container
+            with st.chat_message("assistant"):
+                message_placeholder = st.empty()
+                with st.spinner("Sankalp-AI is analyzing ontology..."):
+                    response = ask_llm_groq(prompt)
+                message_placeholder.markdown(response)
+            # Add assistant response to chat history
+            st.session_state.messages.append({"role": "assistant", "content": response})
+                        
+    with tab2:
+        st.subheader("Update Ontology Logic")
+        st.markdown("Modify the baseline requirements for joint operations.")
+        
+        rules = load_rules()
+        edit_action = st.selectbox("Select Logic to Edit:", list(rules.keys()))
+        
+        rule = rules[edit_action]
+        with st.form("edit_logic_form"):
+            desc = st.text_area("Description", value=rule["description"])
+            iaf_min = st.number_input("Min Operational IAF Aircraft", min_value=0, value=rule["iaf_min_operational"])
+            army_min = st.number_input("Min Operational Army Assets", min_value=0, value=rule["army_min_operational"])
+            navy_min = st.number_input("Min Operational Navy Vessels", min_value=0, value=rule["navy_min_operational"])
+            
+            if st.form_submit_button("Save Logic to Engine"):
+                rules[edit_action] = {
+                    "description": desc,
+                    "iaf_min_operational": iaf_min,
+                    "army_min_operational": army_min,
+                    "navy_min_operational": navy_min
+                }
+                save_rules(rules)
+                st.success("Ontology logic updated successfully!")
+
 # ── Route to branch ──────────────────────────────────────────────────────────
 branch = st.session_state.branch
 if branch == "iaf":
@@ -931,5 +993,7 @@ elif branch == "army":
     render_army()
 elif branch == "navy":
     render_navy()
+elif branch == "ontology":
+    render_ontology_engine()
 elif branch == "admin":
     render_admin_dashboard(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
