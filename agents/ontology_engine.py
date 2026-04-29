@@ -32,18 +32,87 @@ def get_neo4j_driver():
     return GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASS))
 
 
-def load_rules():
+def load_rules() -> dict:
+    """Load all doctrine rules from the JSON store. Auto-creates defaults if missing."""
     if not os.path.exists(RULES_FILE):
         _write_default_rules()
     with open(RULES_FILE, "r") as f:
         return json.load(f)
 
 
-def get_operational_threshold():
+def save_rules(rules: dict) -> None:
+    """Persist rules dict back to the JSON store."""
+    os.makedirs(os.path.dirname(RULES_FILE), exist_ok=True)
+    with open(RULES_FILE, "w") as f:
+        json.dump(rules, f, indent=4)
+
+
+def add_rule(
+    action_name: str,
+    description: str,
+    iaf_min: int,
+    army_min: int,
+    navy_min: int,
+    iaf_sufficient_alone: bool = False,
+    army_enhances: bool = False,
+    army_enhancement_threshold: int = 0,
+) -> tuple[bool, str]:
+    """
+    Add a new doctrine rule to the JSON store.
+    Returns (success: bool, message: str).
+    """
+    action_name = action_name.strip().lower()
+    if not action_name:
+        return False, "Action name cannot be empty."
+
+    rules = load_rules()
+
+    if action_name in rules:
+        return False, f"Rule '{action_name}' already exists. Use Edit to modify it."
+
+    logic_mode = (
+        "iaf_primary_army_superior"
+        if (iaf_sufficient_alone and army_enhances)
+        else "standard"
+    )
+
+    rules[action_name] = {
+        "description": description,
+        "iaf_min_operational": iaf_min,
+        "army_min_operational": army_min,
+        "navy_min_operational": navy_min,
+        "iaf_sufficient_alone": iaf_sufficient_alone,
+        "army_enhances": army_enhances,
+        "army_enhancement_threshold": army_enhancement_threshold,
+        "logic_mode": logic_mode,
+    }
+    save_rules(rules)
+    logger.info(f"Rule added: '{action_name}'")
+    return True, f"Rule '{action_name}' added successfully."
+
+
+def delete_rule(action_name: str) -> tuple[bool, str]:
+    """
+    Delete a doctrine rule from the JSON store.
+    Returns (success: bool, message: str).
+    """
+    rules = load_rules()
+    if action_name not in rules:
+        return False, f"Rule '{action_name}' not found."
+    if action_name == "__global_settings__":
+        return False, "Cannot delete global settings."
+    del rules[action_name]
+    save_rules(rules)
+    logger.info(f"Rule deleted: '{action_name}'")
+    return True, f"Rule '{action_name}' deleted."
+
+
+def get_operational_threshold() -> int:
     rules = load_rules()
     return rules.get("__global_settings__", {}).get("operational_threshold", 5)
 
-def set_operational_threshold(threshold):
+
+def set_operational_threshold(threshold: int) -> None:
     rules = load_rules()
     if "__global_settings__" not in rules:
         rules["__global_settings__"] = {}
@@ -51,40 +120,38 @@ def set_operational_threshold(threshold):
     save_rules(rules)
     update_neo4j_operational_status(threshold)
 
-def update_neo4j_operational_status(threshold):
+
+def update_neo4j_operational_status(threshold: int) -> None:
     try:
         driver = get_neo4j_driver()
         with driver.session() as session:
-            session.run("""
-                MATCH (a:Aircraft)
-                SET a.operational_status = CASE 
-                    WHEN a.readiness_base_score >= $threshold THEN 'Operational'
-                    WHEN a.readiness_base_score >= ($threshold - 20) THEN 'Watch'
-                    ELSE 'Critical' END
-            """, threshold=threshold)
-            
-            session.run("""
-                MATCH (aa:ArmyAsset)
-                SET aa.operational_status = CASE 
-                    WHEN aa.readiness_base_score >= $threshold THEN 'Operational'
-                    WHEN aa.readiness_base_score >= ($threshold - 20) THEN 'Watch'
-                    ELSE 'Critical' END
-            """, threshold=threshold)
-            
-            session.run("""
-                MATCH (v:Vessel)
-                SET v.operational_status = CASE 
-                    WHEN v.readiness_base_score >= $threshold THEN 'Operational'
-                    WHEN v.readiness_base_score >= ($threshold - 20) THEN 'Watch'
-                    ELSE 'Critical' END
-            """, threshold=threshold)
+            for label, score_prop in [
+                ("Aircraft",  "readiness_base_score"),
+                ("ArmyAsset", "readiness_base_score"),
+                ("Vessel",    "readiness_base_score"),
+            ]:
+                session.run(
+                    f"""
+                    MATCH (n:{label})
+                    SET n.operational_status = CASE
+                        WHEN n.{score_prop} >= $threshold THEN 'Operational'
+                        WHEN n.{score_prop} >= ($threshold - 20) THEN 'Watch'
+                        ELSE 'Critical' END
+                    """,
+                    threshold=threshold,
+                )
         driver.close()
     except Exception as e:
         logger.error(f"Failed to update operational status in Neo4j: {e}")
 
-def _write_default_rules():
-    os.makedirs("data/processed", exist_ok=True)
+
+def _write_default_rules() -> None:
+    """Write the built-in starter rules ONLY if no rules file exists yet."""
+    os.makedirs(os.path.dirname(RULES_FILE), exist_ok=True)
     default = {
+        "__global_settings__": {
+            "operational_threshold": 5
+        },
         "protect northern border from any type of infiltration": {
             "iaf_min_operational": 5,
             "army_min_operational": 0,
@@ -97,7 +164,7 @@ def _write_default_rules():
                 "If Army assets (>=10) are also available, the response is classified "
                 "SUPERIOR with ground assault capability."
             ),
-            "logic_mode": "iaf_primary_army_superior"
+            "logic_mode": "iaf_primary_army_superior",
         },
         "attack terrorist infiltration from our southern sea borders": {
             "iaf_min_operational": 2,
@@ -106,35 +173,31 @@ def _write_default_rules():
             "iaf_sufficient_alone": False,
             "army_enhances": False,
             "army_enhancement_threshold": 0,
-            "description": (
-                "Requires fleet of Navy vessels for blockade and IAF recon support."
-            ),
-            "logic_mode": "standard"
-        }
+            "description": "Requires fleet of Navy vessels for blockade and IAF recon support.",
+            "logic_mode": "standard",
+        },
     }
     with open(RULES_FILE, "w") as f:
         json.dump(default, f, indent=4)
 
 
-def save_rules(rules):
-    os.makedirs("data/processed", exist_ok=True)
-    with open(RULES_FILE, "w") as f:
-        json.dump(rules, f, indent=4)
-
-
-def get_current_capabilities():
+def get_current_capabilities() -> dict:
     """Queries Neo4j for current operational counts across all branches."""
     try:
         driver = get_neo4j_driver()
         caps = {"iaf_op": 0, "army_op": 0, "navy_op": 0}
         with driver.session() as session:
-            res = session.run("MATCH (a:Aircraft) WHERE a.operational_status = 'Operational' RETURN COUNT(a)")
+            res = session.run(
+                "MATCH (a:Aircraft) WHERE a.operational_status = 'Operational' RETURN COUNT(a)"
+            )
             caps["iaf_op"] = res.single()[0]
-
-            res = session.run("MATCH (a:ArmyAsset) WHERE a.operational_status = 'Operational' RETURN COUNT(a)")
+            res = session.run(
+                "MATCH (a:ArmyAsset) WHERE a.operational_status = 'Operational' RETURN COUNT(a)"
+            )
             caps["army_op"] = res.single()[0]
-
-            res = session.run("MATCH (v:Vessel) WHERE v.operational_status = 'Operational' RETURN COUNT(v)")
+            res = session.run(
+                "MATCH (v:Vessel) WHERE v.operational_status = 'Operational' RETURN COUNT(v)"
+            )
             caps["navy_op"] = res.single()[0]
         driver.close()
         return caps
@@ -143,29 +206,29 @@ def get_current_capabilities():
         return {"iaf_op": 0, "army_op": 0, "navy_op": 0}
 
 
-def evaluate_action(action_name: str):
+def evaluate_action(action_name: str) -> tuple:
     """
     Evaluate whether a named doctrine action can be executed.
 
     logic_mode = "iaf_primary_army_superior":
-        - IAF meeting its minimum alone = CAN EXECUTE (air-only response)
-        - IAF + Army both meeting thresholds = SUPERIOR RESPONSE
-        - IAF below minimum = CANNOT EXECUTE regardless of Army
+        - IAF meeting its minimum alone  → CAN EXECUTE (ADEQUATE, air-only)
+        - IAF + Army both meeting thresholds → CAN EXECUTE (SUPERIOR)
+        - IAF below minimum → CANNOT EXECUTE
 
     logic_mode = "standard":
-        - All branch minimums must be met simultaneously
+        - All branch minimums must be met simultaneously.
     """
     rules = load_rules()
     if action_name not in rules:
-        return False, [f"Action '{action_name}' not defined in ontology logic."]
+        return False, [f"Action '{action_name}' not defined in ontology logic."], "INSUFFICIENT"
 
     rule  = rules[action_name]
     caps  = get_current_capabilities()
     mode  = rule.get("logic_mode", "standard")
 
-    reasons     = []
+    reasons: list[str] = []
     can_execute = False
-    tier        = None   # "SUPERIOR" | "ADEQUATE" | "INSUFFICIENT"
+    tier = "INSUFFICIENT"
 
     if mode == "iaf_primary_army_superior":
         iaf_ok   = caps["iaf_op"] >= rule["iaf_min_operational"]
@@ -174,62 +237,52 @@ def evaluate_action(action_name: str):
         army_ok  = caps["army_op"] >= army_thr if army_enh else False
 
         if iaf_ok and army_ok:
-            can_execute = True
-            tier = "SUPERIOR"
+            can_execute, tier = True, "SUPERIOR"
             reasons.append(
                 f"✅ **IAF**: {caps['iaf_op']} operational aircraft "
                 f"(minimum {rule['iaf_min_operational']}) — air superiority confirmed."
             )
             reasons.append(
                 f"✅ **Army**: {caps['army_op']} operational assets "
-                f"(enhancement threshold {army_thr}) — ground assault capability added. "
+                f"(enhancement threshold {army_thr}) — ground assault added. "
                 f"**Response tier: 🏆 SUPERIOR**"
             )
         elif iaf_ok:
-            can_execute = True
-            tier = "ADEQUATE"
+            can_execute, tier = True, "ADEQUATE"
             reasons.append(
                 f"✅ **IAF**: {caps['iaf_op']} operational aircraft "
                 f"(minimum {rule['iaf_min_operational']}) — air-only response possible."
             )
             if army_enh:
                 reasons.append(
-                    f"⚠️  **Army**: {caps['army_op']} operational assets "
-                    f"(enhancement threshold {army_thr} not met) — "
-                    f"ground support unavailable. **Response tier: 🟡 ADEQUATE (Air Only)**"
+                    f"⚠️  **Army**: {caps['army_op']} assets "
+                    f"(threshold {army_thr} not met) — ground support unavailable. "
+                    f"**Response tier: 🟡 ADEQUATE (Air Only)**"
                 )
         else:
-            can_execute = False
-            tier = "INSUFFICIENT"
             reasons.append(
-                f"❌ **IAF**: {caps['iaf_op']} operational aircraft — "
-                f"minimum {rule['iaf_min_operational']} required. "
-                f"**Cannot execute — no air superiority.**"
+                f"❌ **IAF**: {caps['iaf_op']} aircraft — "
+                f"minimum {rule['iaf_min_operational']} required. **Cannot execute.**"
             )
             if army_enh:
-                army_status = "✅" if army_ok else "⚠️ "
                 reasons.append(
-                    f"{army_status} **Army**: {caps['army_op']} assets available, "
-                    f"but IAF shortfall prevents execution. "
-                    f"**Response tier: 🔴 INSUFFICIENT**"
+                    f"{'✅' if army_ok else '⚠️ '} **Army**: {caps['army_op']} assets available, "
+                    f"but IAF shortfall prevents execution. **Response tier: 🔴 INSUFFICIENT**"
                 )
 
-        # Navy not required for northern border — just note it
         reasons.append(
-            f"ℹ️  **Navy**: {caps['navy_op']} seaworthy vessels "
-            f"(not required for this doctrine)."
+            f"ℹ️  **Navy**: {caps['navy_op']} seaworthy vessels (not required for this doctrine)."
         )
 
     else:
-        # Standard mode — all minimums must be met
-        iaf_ok   = caps["iaf_op"]   >= rule["iaf_min_operational"]
-        army_ok  = caps["army_op"]  >= rule["army_min_operational"]
-        navy_ok  = caps["navy_op"]  >= rule["navy_min_operational"]
+        # Standard — all minimums must be met
+        iaf_ok  = caps["iaf_op"]  >= rule["iaf_min_operational"]
+        army_ok = caps["army_op"] >= rule["army_min_operational"]
+        navy_ok = caps["navy_op"] >= rule["navy_min_operational"]
         can_execute = iaf_ok and army_ok and navy_ok
 
         def _fmt(label, actual, required, ok):
-            mark = "✅" if ok else "❌"
-            return f"{mark} **{label}**: {actual} available (requires {required})."
+            return f"{'✅' if ok else '❌'} **{label}**: {actual} available (requires {required})."
 
         reasons.append(_fmt("IAF",  caps["iaf_op"],  rule["iaf_min_operational"],  iaf_ok))
         reasons.append(_fmt("Army", caps["army_op"], rule["army_min_operational"], army_ok))
@@ -256,8 +309,6 @@ def _resolve_api_key() -> str:
 def ask_llm_groq(query: str) -> str:
     """
     Uses Groq API with live Neo4j context and the doctrine rules.
-    The system prompt explicitly teaches the LLM about the
-    iaf_primary_army_superior logic so it reasons correctly.
     """
     api_key = _resolve_api_key()
 
@@ -286,22 +337,17 @@ def ask_llm_groq(query: str) -> str:
     system_prompt = (
         "You are 'Sankalp-AI', the master defence intelligence ontology AI "
         "for the Indian Armed Forces. Answer like a decisive senior military commander.\n\n"
-
         "## DOCTRINE LOGIC RULES\n"
         "Some actions follow 'iaf_primary_army_superior' mode:\n"
         "  - IAF alone meeting its minimum → CAN EXECUTE (air-only, ADEQUATE tier)\n"
-        "  - IAF + Army both meeting thresholds → CAN EXECUTE (SUPERIOR tier — "
-        "ground assault adds decisive advantage)\n"
-        "  - IAF below minimum → CANNOT EXECUTE (no air superiority) even if Army is ready\n\n"
-
+        "  - IAF + Army both meeting thresholds → CAN EXECUTE (SUPERIOR tier)\n"
+        "  - IAF below minimum → CANNOT EXECUTE\n\n"
         "## LIVE FLEET STATUS (Neo4j Digital Twin)\n"
         f"- IAF: {caps['iaf_op']} operational aircraft\n"
         f"- Army: {caps['army_op']} operational assets\n"
         f"- Navy: {caps['navy_op']} seaworthy vessels\n\n"
-
         "## CONFIGURED DOCTRINE RULES\n"
         f"{json.dumps(rules, indent=2)}\n\n"
-
         "When answering, state the response tier clearly: "
         "🏆 SUPERIOR, 🟡 ADEQUATE, or 🔴 INSUFFICIENT. "
         "Be specific about which branch meets or fails the threshold."
@@ -358,7 +404,7 @@ def ask_llm_groq(query: str) -> str:
                         result = "Unknown tool."
                     messages.append({
                         "tool_call_id": tc.id, "role": "tool",
-                        "name": fn_name, "content": result
+                        "name": fn_name, "content": result,
                     })
                 second = client.chat.completions.create(
                     model=llm_model, messages=messages,
@@ -377,6 +423,4 @@ def ask_llm_groq(query: str) -> str:
 
     except Exception as e:
         logger.error(f"Groq API error: {e}")
-        return (
-            f"⚠️ **Groq API error:**"
-        )
+        return f"⚠️ **Groq API error:** {e}"
