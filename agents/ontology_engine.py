@@ -279,8 +279,11 @@ def ask_llm_groq(query: str, history: list | None = None) -> str:
         f"Army={caps['army_op']} op assets, Navy={caps['navy_op']} op vessels.\n\n"
         "RELEVANT DOCTRINE RULES (top matches):\n"
         f"{relevant_rules_text}\n\n"
-        "Tiers: 🏆 SUPERIOR | 🟡 ADEQUATE | 🔴 INSUFFICIENT. "
-        "State tier and which branch meets/fails threshold. Be concise."
+        "EVALUATION INSTRUCTIONS:\n"
+        "1. Treat the FLEET STATUS numbers as the definitive available total. Do NOT run cypher queries to verify them.\n"
+        "2. If the FLEET STATUS meets the rule's minimums, state it is ADEQUATE or SUPERIOR (if army threshold is met).\n"
+        "3. Tiers: 🏆 SUPERIOR | 🟡 ADEQUATE | 🔴 INSUFFICIENT.\n"
+        "State the tier and which branch meets/fails the threshold. Be concise."
     )
 
     # ── 4. Cap history at last 6 messages ────────────────────────────────────

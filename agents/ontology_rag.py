@@ -185,6 +185,7 @@ def get_relevant_rules_for_prompt(query: str, top_k: int = 2) -> str:
             f'- "{h["key"]}": IAF≥{r.get("iaf_min_operational",0)}, '
             f'Army≥{r.get("army_min_operational",0)}, '
             f'Navy≥{r.get("navy_min_operational",0)}, '
+            f'Army_Threshold={r.get("army_enhancement_threshold",0)}, '
             f'mode={r.get("logic_mode","standard")}. '
             f'{r.get("description","")[:120]}'
         )
