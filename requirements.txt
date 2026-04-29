@@ -6,3 +6,8 @@ python-dotenv>=0.19.0
 altair>=5.0.0
 groq>=1.0.0
 
+# RAG dependencies (ontology_rag.py)
+sentence-transformers>=2.7.0
+faiss-cpu>=1.8.0
+numpy>=1.24.0
+torchvision>=0.15.0
