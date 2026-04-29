@@ -58,4 +58,4 @@ def render_left_sidebar():
 
         st.markdown("---")
         st.caption("Agents: Ganana · Shodhan · Bandhan · Bhavishyavani · Darshan")
-        st.caption("v2.0 | Palantir-style Ontology")
+        st.caption("v2.0 | Defence Ontology Platform")

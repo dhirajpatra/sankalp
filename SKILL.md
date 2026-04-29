@@ -1,16 +1,16 @@
 ---
 name: sankalp-ontology-platform
-description: Build a multi-agent MVP named Sankalp – an open-source, Palantir‑style “Ontology as a digital twin” tailored for Indian defence use cases (DRDO, Indian Army, IAF, Navy). Built with Python, Neo4j, Streamlit, and optional ML integration.
+description: Build a multi-agent MVP named Sankalp – an open-source, Defence Ontology Platform “Ontology as a digital twin” tailored for Indian defence use cases (DRDO, Indian Army, IAF, Navy). Built with Python, Neo4j, Streamlit, and optional ML integration.
 ---
 
 # Skill: Sankalp – Multi-Agent Open Ontology Builder for Indian Defence
 
 ## Purpose
-Enable Claude to guide the development of a **multi-agent MVP** named **Sankalp** – an open-source, Palantir‑style “Ontology as a digital twin” tailored for Indian defence use cases (DRDO, Indian Army, IAF, Navy). Built with Python, Neo4j, Streamlit, and optional ML integration.
+Enable Claude to guide the development of a **multi-agent MVP** named **Sankalp** – an open-source, “Ontology as a digital twin” tailored for Indian defence use cases (DRDO, Indian Army, IAF, Navy). Built with Python, Neo4j, Streamlit, and optional ML integration.
 
 ## Core Multi-Agent Architecture (Sankalp's 5 Agents)
 
-| Agent Name (Sankalp Codename) | Palantir Equivalent | Open Source Tool | Defence-Relevant Function |
+| Agent Name (Sankalp Codename) | Defence Ontology Equivalent | Open Source Tool | Defence-Relevant Function |
 |-------------------------------|--------------------|------------------|---------------------------|
 | **Ganana** (गणना – Counting) | Ingestion / Magritte | Airbyte / Python (Pandas) | Ingest logistics, personnel, platform data from multiple defence silos. |
 | **Shodhan** (शोधन – Purification) | Foundry Pipeline | dbt / Pandas + SQLite | Clean and standardise data (e.g., inconsistent unit names, vehicle IDs). |
@@ -29,7 +29,7 @@ Enable Claude to guide the development of a **multi-agent MVP** named **Sankalp*
 
 **Output:** Streamlit dashboard "Sankalp Darshan" where a defence user can:
 - Select an aircraft → see its crew, mission history, and predicted maintenance due date.
-- Click **"Log New Mission"** action – writes back to Neo4j (replaces Palantir's "Action").
+- Click **"Log New Mission"** action – writes back to Neo4j (replaces Ontology's "Action").
 - See a **"Readiness Score"** (0–100%) as an ML‑generated property on each aircraft.
 
 **No production security** – but labels and variable names reflect defence terminology.

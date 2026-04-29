@@ -1,7 +1,7 @@
 """
 Darshan (दर्शन) v2 – Sankalp Defence Digital Twin Ontology Platform
 Multi-branch: IAF · Army · Navy
-Palantir Foundry-style Ontology Platform
+Defence Ontology Platform
 """
 
 import streamlit as st
