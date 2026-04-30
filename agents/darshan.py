@@ -13,6 +13,7 @@ import string
 from datetime import date, datetime
 from dotenv import load_dotenv
 from darshan_navy_branch import render_navy
+from darshan_automation_tab import render_automation
 from darshan_iaf_branch import render_iaf
 from darshan_army_branch import render_army
 
@@ -401,5 +402,7 @@ elif branch == "navy":
     render_navy()
 elif branch == "ontology":
     render_ontology_engine()
+elif branch == "automation":
+    render_automation()
 elif branch == "admin":
     render_admin_dashboard(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
