@@ -10,6 +10,7 @@ import logging
 from pathlib import Path
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
+from config_loader import cfg
 
 logger = logging.getLogger("ontology_engine")
 
@@ -373,8 +374,8 @@ def ask_llm_groq(query: str, history: list | None = None) -> str:
                 messages=messages,
                 tools=tools_schema,
                 tool_choice="auto",
-                temperature=0.1,
-                max_completion_tokens=512,
+                temperature=float(cfg("llm.temperature_tool")),
+                max_completion_tokens=int(cfg("llm.tool_use_max_tokens")),
             )
             response_message = completion.choices[0].message
 
@@ -403,8 +404,8 @@ def ask_llm_groq(query: str, history: list | None = None) -> str:
                     })
                 second = client.chat.completions.create(
                     model=llm_model, messages=messages,
-                    temperature=0.2, stream=True,
-                    max_completion_tokens=512,
+                    temperature=float(cfg("llm.temperature")), stream=True,
+                    max_completion_tokens=int(cfg("llm.tool_use_max_tokens")),
                 )
                 return "".join(chunk.choices[0].delta.content or "" for chunk in second)
 
@@ -413,8 +414,8 @@ def ask_llm_groq(query: str, history: list | None = None) -> str:
         else:
             completion = client.chat.completions.create(
                 model=llm_model, messages=messages,
-                temperature=0.2,
-                max_completion_tokens=1024,
+                temperature=float(cfg("llm.temperature")),  
+                max_completion_tokens=int(cfg("llm.fallback_max_tokens")),  
             )
             return completion.choices[0].message.content or ""
 

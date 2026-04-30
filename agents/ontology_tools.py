@@ -11,6 +11,7 @@ import json
 import logging
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
+from config_loader import cfg
 
 load_dotenv(override=True)
 
@@ -110,7 +111,7 @@ def text_to_cypher(query: str, groq_client) -> str:
             {"role": "user",   "content": query},
         ],
         temperature=0.0,
-        max_completion_tokens=200,      # ← Cypher queries are short
+        max_completion_tokens=int(cfg("llm.cypher_tokens")),
     )
 
     cypher = completion.choices[0].message.content.strip()

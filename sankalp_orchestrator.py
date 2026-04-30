@@ -7,6 +7,8 @@ readiness monitor before launching the Streamlit dashboard.
 import sys
 import subprocess
 import logging
+from config_loader import cfg
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("sankalp")
@@ -135,11 +137,11 @@ def main():
     # ══════════════════════════════════════════════════════
     print("\n" + "─" * 50)
     print("🟣 Darshan: Launching Streamlit command dashboard...")
-    print("   → http://localhost:8501\n")
+    print(f"   → http://localhost:{cfg('streamlit.port')}\n")
     print("=" * 60)
     subprocess.run([
         sys.executable, "-m", "streamlit", "run",
-        "agents/darshan.py", "--server.port", "8501",
+        "agents/darshan.py", "--server.port", str(cfg("streamlit.port")),
     ])
 
 

@@ -10,6 +10,7 @@ import random
 import string
 from datetime import date
 from dotenv import load_dotenv
+from config_loader import cfg
 
 from darshan_navy_branch import render_navy
 from darshan_iaf_branch import render_iaf
@@ -37,7 +38,7 @@ NEO4J_URI      = os.getenv("NEO4J_URI")
 NEO4J_USER     = os.getenv("NEO4J_USER")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
 
-STYLES = "assets/styles/style.css"
+STYLES = cfg("paths.css_file")
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(

@@ -9,11 +9,12 @@ import os
 import logging
 import numpy as np
 from pathlib import Path
+from config_loader import cfg
 
 logger = logging.getLogger("ontology_rag")
 
-RULES_FILE = "data/processed/ontology_rules.json"
-INDEX_FILE = "data/processed/ontology_rag.index"
+RULES_FILE = cfg("paths.rules_file")
+INDEX_FILE = cfg("paths.rag_index")
 META_FILE  = "data/processed/ontology_rag_meta.json"
 
 _embedder = None

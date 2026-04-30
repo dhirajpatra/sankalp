@@ -1,0 +1,267 @@
+# ╔══════════════════════════════════════════════════════════════════╗
+# ║         SANKALP – Defence Ontology Platform                      ║
+# ║         Central Configuration File                               ║
+# ║                                                                  ║
+# ║  All hardcoded values across agents, orchestrator, and UI        ║
+# ║  are sourced from here via config_loader.py                      ║
+# ║                                                                  ║
+# ║  Environment variables override any value here at runtime.       ║
+# ╚══════════════════════════════════════════════════════════════════╝
+
+# ── Neo4j ──────────────────────────────────────────────────────────────────────
+neo4j:
+  uri: "bolt://localhost:7687"         # Override: NEO4J_URI
+  user: "neo4j"                        # Override: NEO4J_USER
+  password: "sankalp123"              # Override: NEO4J_PASSWORD
+  connection:
+    retries: 5
+    retry_delay_seconds: 2             # Base delay; doubles on each retry (exponential backoff)
+  browser_port: 7474
+  bolt_port: 7687
+
+# ── Streamlit Dashboard ────────────────────────────────────────────────────────
+streamlit:
+  port: 8501
+  host: "0.0.0.0"
+  page_title: "Sankalp – Defence Digital Twin"
+  page_icon: "🛡️"
+  layout: "wide"
+  initial_sidebar_state: "expanded"
+  cache_ttl_seconds: 10               # TTL for @st.cache_data in db helpers
+
+# ── Paths ──────────────────────────────────────────────────────────────────────
+paths:
+  # Input data
+  raw_data_dir: "data/raw"
+
+  # Automation
+  automation_db: "data/processed/sankalp_automation.db"
+
+  # IAF
+  iaf_raw_db:   "data/processed/sankalp_raw.db"
+  iaf_gold_db:  "data/processed/sankalp_gold.db"
+
+  # Army
+  army_raw_db:  "data/processed/sankalp_army_raw.db"
+  army_gold_db: "data/processed/sankalp_army_gold.db"
+
+  # Navy
+  navy_raw_db:  "data/processed/sankalp_navy_raw.db"
+  navy_gold_db: "data/processed/sankalp_navy_gold.db"
+
+  # Ontology rules
+  rules_file:   "data/processed/ontology_rules.json"
+
+  # RAG index
+  rag_index:    "data/processed/ontology_rag.index"
+  rag_meta:     "data/processed/ontology_rag_meta.json"
+
+  # Stylesheets
+  css_file:     "assets/styles/style.css"
+
+  # Neo4j CSV import directory (Docker volume mount)
+  neo4j_import_dir: "data/neo4j_import"
+  neo4j_import_dir_docker: "/var/lib/neo4j/import"
+
+# ── CSV filenames (resolved relative to paths.raw_data_dir) ───────────────────
+csv_files:
+  iaf:
+    aircraft: "aircraft.csv"
+    crew:     "crew.csv"
+    missions: "missions.csv"
+  army:
+    assets: "army_assets.csv"
+    crew:   "army_crew.csv"
+    ops:    "army_ops.csv"
+  navy:
+    vessels: "navy_vessels.csv"
+    crew:    "navy_crew.csv"
+    sorties: "navy_sorties.csv"
+
+# ── Readiness Scoring ──────────────────────────────────────────────────────────
+readiness:
+  # Global operational threshold: assets scoring >= this are "Operational"
+  # Also persisted in ontology_rules.json under __global_settings__
+  operational_threshold: 5
+
+  # Watch band: assets between (threshold - watch_band) and threshold
+  watch_band: 20
+
+  # IAF formula weights  (final = base*w_base - days*w_staleness + count*w_currency)
+  iaf:
+    maintenance_hours_limit: 1000     # Hours before mandatory depot maintenance
+    weight_base:       0.6
+    weight_staleness:  0.05           # Per day since last mission
+    weight_currency:   0.2            # Per mission flown
+
+  # Army formula weights
+  army:
+    maintenance_hours_limit: 1500     # Hours before depot-level service
+    weight_base:       0.6
+    weight_staleness:  0.05
+    weight_currency:   0.2
+
+  # Navy formula weights
+  navy:
+    maintenance_hours_limit: 3000     # Hours before major refit cycle
+    weight_base:       0.6
+    weight_staleness:  0.05
+    weight_currency:   0.2
+
+# ── LLM / Groq ────────────────────────────────────────────────────────────────
+llm:
+  provider: "groq"
+  model: "llama-3.1-8b-instant"       # Override: MODEL env var
+  api_key: ""                          # Override: GROQ_API_KEY (never hardcode here)
+
+  # Token budgets
+  tool_use_max_tokens: 512
+  fallback_max_tokens: 1024
+  cypher_max_tokens:   200
+
+  # Sampling
+  temperature_tool:    0.1
+  temperature_chat:    0.2
+  temperature_cypher:  0.0
+
+  # Conversation / context management
+  history_max_messages: 6             # Max prior messages sent to LLM per turn
+  session_history_cap:  20            # Max messages stored in st.session_state
+
+  # RAG
+  rag_top_k: 2                        # Number of relevant rules injected per query
+  rag_model: "all-MiniLM-L6-v2"       # sentence-transformers model
+
+# ── Ontology Engine defaults ───────────────────────────────────────────────────
+ontology:
+  # Default doctrine rules written on first run (if rules_file is absent)
+  default_rules:
+    protect_northern_border:
+      key: "protect northern border from any type of infiltration"
+      iaf_min_operational: 5
+      army_min_operational: 0
+      navy_min_operational: 0
+      iaf_sufficient_alone: true
+      army_enhances: true
+      army_enhancement_threshold: 10
+      logic_mode: "iaf_primary_army_superior"
+      description: >
+        IAF alone can handle northern border infiltration with air superiority.
+        If Army assets (>=10) are also available, response is classified SUPERIOR
+        with ground assault capability.
+
+    southern_sea_border:
+      key: "attack terrorist infiltration from our southern sea borders"
+      iaf_min_operational: 2
+      army_min_operational: 0
+      navy_min_operational: 8
+      iaf_sufficient_alone: false
+      army_enhances: false
+      army_enhancement_threshold: 0
+      logic_mode: "standard"
+      description: >
+        Requires fleet of Navy vessels for blockade and IAF recon support.
+
+# ── Squadron → Base Location mapping (used by bandhan.py) ────────────────────
+squadron_locations:
+  Tigers:           "Punjab (Northern Border)"
+  Tuskers:          "Jammu (Northern Border)"
+  Winged Arrows:    "Ladakh (Northern Border)"
+  Oorials:          "Kashmir (Northern Border)"
+  Wolfpack:         "Punjab (Northern Border)"
+  Eight Pursoots:   "Rajasthan (Western Border)"
+  Flying Lancers:   "Gujarat (Western Border)"
+  Black Cobras:     "Rajasthan (Western Border)"
+  Bulls:            "Gujarat (Western Border)"
+  Flying Bullets:   "Assam (Eastern Border)"
+  Dragons:          "Arunachal (Eastern Border)"
+  Battle Axes:      "Assam (Eastern Border)"
+  Eagle Squadron:   "Haryana (Northern Border)"
+  Phoenix Flight:   "Punjab (Northern Border)"
+  Night Hunters:    "Rajasthan (Western Border)"
+
+# ── Mission / Operation / Sortie type options (used in UI dropdowns) ──────────
+operation_types:
+  iaf_missions:
+    - "Combat Air Patrol"
+    - "Strike"
+    - "Intercept"
+    - "Reconnaissance"
+    - "Air Defence"
+    - "CAS"
+    - "Logistics"
+    - "Training"
+
+  army_ops:
+    - "Patrol"
+    - "Live Fire Exercise"
+    - "Border Vigil"
+    - "Counter-Insurgency"
+    - "Strike Mission"
+    - "Recon"
+    - "Logistics"
+    - "Training"
+
+  navy_sorties:
+    - "Patrol"
+    - "Anti-Submarine Warfare"
+    - "Humanitarian Aid"
+    - "Fleet Exercise"
+    - "Strike"
+    - "ISR"
+    - "Escort"
+    - "Port Visit"
+
+# ── Fuel / resource defaults (UI number_input bounds) ─────────────────────────
+ui_limits:
+  iaf:
+    fuel_min: 500
+    fuel_max: 8000
+    fuel_default: 3000
+    fuel_step: 100
+
+  army:
+    ammo_min: 0
+    ammo_max: 5000
+    ammo_default: 0
+    ammo_step: 50
+
+  navy:
+    fuel_min: 5
+    fuel_max: 1000
+    fuel_default: 50
+    fuel_step: 5
+
+# ── Neo4j Cypher schema used by ontology_tools.py ─────────────────────────────
+neo4j_schema:
+  valid_labels:
+    - Aircraft
+    - ArmyAsset
+    - Vessel
+    - Crew
+    - Mission
+    - ArmyOperation
+    - Sortie
+    - ArmyPersonnel
+    - NavyCrew
+
+  relationships:
+    - "(Aircraft)-[:EXECUTED]->(Mission)"
+    - "(Crew)-[:PARTICIPATED_IN]->(Mission)"
+    - "(ArmyAsset)-[:DEPLOYED_FOR]->(ArmyOperation)"
+    - "(ArmyPersonnel)-[:ENGAGED_IN]->(ArmyOperation)"
+    - "(Vessel)-[:SAILED_FOR]->(Sortie)"
+    - "(NavyCrew)-[:ASSIGNED_TO]->(Sortie)"
+
+# ── Docker / deployment ────────────────────────────────────────────────────────
+docker:
+  neo4j_container: "sankalp-neo4j"
+  agents_container: "sankalp-agents"
+  neo4j_healthcheck_interval: 10       # seconds
+  neo4j_healthcheck_retries: 30
+  neo4j_startup_wait: 10              # seconds to wait after compose up before setup
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+logging:
+  level: "INFO"
+  format: "%(levelname)s [%(name)s] %(message)s"
