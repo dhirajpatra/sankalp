@@ -1,10 +1,7 @@
 """
 ontology_engine.py – SANKALP Ontology Engine
-Changes vs previous version:
-  1. RAG: rules injected via semantic search (top-2) instead of full JSON dump
-  2. Trimmed system prompt (~60% shorter)
-  3. Conversation history capped at last 6 messages
-  4. max_completion_tokens reduced: tool-use → 512, fallback → 1024
+Fix: evaluate_action results are now injected into the LLM system prompt so the
+LLM cannot re-reason from scratch and produce a wrong tier verdict.
 """
 
 import json
@@ -16,7 +13,7 @@ from dotenv import load_dotenv
 
 logger = logging.getLogger("ontology_engine")
 
-# ── .env loading ──────────────────────────────────────────────────────────────
+
 def _load_env():
     candidate = Path(__file__).resolve().parent
     for _ in range(4):
@@ -25,6 +22,7 @@ def _load_env():
             load_dotenv(dotenv_path=env_file, override=True)
             return
         candidate = candidate.parent
+
 
 _load_env()
 
@@ -52,7 +50,6 @@ def save_rules(rules: dict) -> None:
     os.makedirs(os.path.dirname(RULES_FILE), exist_ok=True)
     with open(RULES_FILE, "w") as f:
         json.dump(rules, f, indent=4)
-    # Invalidate RAG index so next query rebuilds with fresh rules
     try:
         from ontology_rag import invalidate_index
         invalidate_index()
@@ -137,9 +134,15 @@ def get_current_capabilities() -> dict:
         driver = get_neo4j_driver()
         caps = {}
         with driver.session() as session:
-            caps["iaf_op"]  = session.run("MATCH (a:Aircraft) WHERE a.operational_status='Operational' RETURN COUNT(a)").single()[0]
-            caps["army_op"] = session.run("MATCH (a:ArmyAsset) WHERE a.operational_status='Operational' RETURN COUNT(a)").single()[0]
-            caps["navy_op"] = session.run("MATCH (v:Vessel) WHERE v.operational_status='Operational' RETURN COUNT(v)").single()[0]
+            caps["iaf_op"]  = session.run(
+                "MATCH (a:Aircraft) WHERE a.operational_status='Operational' RETURN COUNT(a)"
+            ).single()[0]
+            caps["army_op"] = session.run(
+                "MATCH (a:ArmyAsset) WHERE a.operational_status='Operational' RETURN COUNT(a)"
+            ).single()[0]
+            caps["navy_op"] = session.run(
+                "MATCH (v:Vessel) WHERE v.operational_status='Operational' RETURN COUNT(v)"
+            ).single()[0]
         driver.close()
         return caps
     except Exception as e:
@@ -149,6 +152,11 @@ def get_current_capabilities() -> dict:
 
 # ── Evaluate action ───────────────────────────────────────────────────────────
 def evaluate_action(action_name: str) -> tuple:
+    """
+    Deterministically evaluate whether current fleet capabilities meet the
+    requirements for the named action.
+    Returns (can_execute: bool, reasons: list[str], tier: str)
+    """
     rules = load_rules()
     if action_name not in rules:
         return False, [f"Action '{action_name}' not defined."], "INSUFFICIENT"
@@ -177,25 +185,94 @@ def evaluate_action(action_name: str) -> tuple:
         else:
             reasons.append(f"❌ IAF: {caps['iaf_op']} aircraft — min {rule['iaf_min_operational']} required.")
 
-        reasons.append(f"ℹ️ Navy: {caps['navy_op']} vessels (not required).")
+        reasons.append(f"ℹ️ Navy: {caps['navy_op']} vessels (not required for this action).")
 
-    else:
-        iaf_ok  = caps["iaf_op"]  >= rule["iaf_min_operational"]
-        army_ok = caps["army_op"] >= rule["army_min_operational"]
-        navy_ok = caps["navy_op"] >= rule["navy_min_operational"]
+    else:  # standard mode
+        iaf_min  = rule["iaf_min_operational"]
+        army_min = rule["army_min_operational"]
+        navy_min = rule["navy_min_operational"]
+
+        iaf_ok  = caps["iaf_op"]  >= iaf_min
+        army_ok = caps["army_op"] >= army_min
+        navy_ok = caps["navy_op"] >= navy_min
+
         can_execute = iaf_ok and army_ok and navy_ok
         tier = "ADEQUATE" if can_execute else "INSUFFICIENT"
 
         def _fmt(lbl, actual, req, ok):
-            return f"{'✅' if ok else '❌'} {lbl}: {actual} available (requires {req})."
+            status = "✅" if ok else "❌"
+            comparison = "meets" if ok else "BELOW"
+            return (
+                f"{status} {lbl}: {actual} operational "
+                f"(requires ≥{req}) — {comparison} minimum."
+            )
 
         reasons += [
-            _fmt("IAF",  caps["iaf_op"],  rule["iaf_min_operational"],  iaf_ok),
-            _fmt("Army", caps["army_op"], rule["army_min_operational"], army_ok),
-            _fmt("Navy", caps["navy_op"], rule["navy_min_operational"], navy_ok),
+            _fmt("IAF",  caps["iaf_op"],  iaf_min,  iaf_ok),
+            _fmt("Army", caps["army_op"], army_min, army_ok),
+            _fmt("Navy", caps["navy_op"], navy_min, navy_ok),
         ]
 
+        if can_execute:
+            reasons.append("✅ All branch requirements met — action is EXECUTABLE.")
+        else:
+            failing = []
+            if not iaf_ok:  failing.append(f"IAF (has {caps['iaf_op']}, needs {iaf_min})")
+            if not army_ok: failing.append(f"Army (has {caps['army_op']}, needs {army_min})")
+            if not navy_ok: failing.append(f"Navy (has {caps['navy_op']}, needs {navy_min})")
+            reasons.append(f"❌ Cannot execute — failing branches: {', '.join(failing)}.")
+
     return can_execute, reasons, tier
+
+
+def _build_doctrine_assessment(query: str) -> str:
+    """
+    Pre-compute evaluate_action for all rules that semantically relate to the query,
+    then return a clear, deterministic assessment block to inject into the LLM prompt.
+    This prevents the LLM from re-reasoning and producing wrong verdicts.
+    """
+    rules = load_rules()
+    action_keys = [k for k in rules if k != "__global_settings__"]
+    caps = get_current_capabilities()
+
+    # Find relevant rules via keyword match against the query
+    query_lower = query.lower()
+    relevant = []
+    for key in action_keys:
+        rule_text = (key + " " + rules[key].get("description", "")).lower()
+        # Score by word overlap
+        q_words = set(query_lower.split())
+        overlap = sum(1 for w in q_words if len(w) > 3 and w in rule_text)
+        if overlap > 0:
+            relevant.append((overlap, key))
+
+    # Sort by relevance; fall back to all rules if nothing matches
+    relevant.sort(reverse=True)
+    selected_keys = [k for _, k in relevant[:3]] if relevant else action_keys[:3]
+
+    lines = [
+        f"LIVE FLEET STATUS (authoritative — do NOT recompute):",
+        f"  IAF operational aircraft : {caps['iaf_op']}",
+        f"  Army operational assets  : {caps['army_op']}",
+        f"  Navy operational vessels : {caps['navy_op']}",
+        "",
+        "PRE-COMPUTED DOCTRINE EVALUATIONS (authoritative — reproduce these verbatim):",
+    ]
+
+    for key in selected_keys:
+        can_execute, reasons, tier = evaluate_action(key)
+        tier_emoji = {"SUPERIOR": "🏆", "ADEQUATE": "🟡", "INSUFFICIENT": "🔴"}.get(tier, "❓")
+        lines.append(f"\nAction: \"{key}\"")
+        lines.append(f"  Verdict: {tier_emoji} {tier}")
+        for r in reasons:
+            lines.append(f"  {r}")
+
+    lines += [
+        "",
+        "INSTRUCTION: Your answer MUST use the tier and reasons above exactly as computed.",
+        "Do NOT recalculate or override these verdicts. Summarise them clearly for the user.",
+    ]
+    return "\n".join(lines)
 
 
 # ── Default rules ─────────────────────────────────────────────────────────────
@@ -212,7 +289,7 @@ def _write_default_rules():
         "attack terrorist infiltration from our southern sea borders": {
             "iaf_min_operational": 2, "army_min_operational": 0, "navy_min_operational": 8,
             "iaf_sufficient_alone": False, "army_enhances": False, "army_enhancement_threshold": 0,
-            "description": "Requires Navy fleet blockade + IAF recon.",
+            "description": "Requires Navy fleet blockade + IAF recon support. Both must meet minimums.",
             "logic_mode": "standard",
         },
     }
@@ -231,14 +308,12 @@ def _resolve_api_key() -> str:
     return ""
 
 
-# ── LLM call with RAG + trimmed prompt + capped history ──────────────────────
+# ── LLM call ──────────────────────────────────────────────────────────────────
 def ask_llm_groq(query: str, history: list | None = None) -> str:
     """
-    Calls Groq with:
-    - RAG: only top-2 semantically relevant rules injected (not full dump)
-    - Trimmed system prompt
-    - History capped at last 6 messages
-    - max_completion_tokens: 512 (tool-use) / 1024 (fallback)
+    Key fix: pre-computed evaluate_action results are injected into the system
+    prompt as authoritative verdicts. The LLM is instructed to reproduce them,
+    not re-reason from scratch. This eliminates wrong tier responses.
     """
     api_key = _resolve_api_key()
     if not api_key:
@@ -247,44 +322,27 @@ def ask_llm_groq(query: str, history: list | None = None) -> str:
             "Add `GROQ_API_KEY=gsk_...` to `.env` or Docker env."
         )
 
-    # ── 1. RAG: fetch only relevant rules ────────────────────────────────────
+    # ── 1. Build deterministic doctrine assessment ────────────────────────────
+    doctrine_block = _build_doctrine_assessment(query)
+
+    # ── 2. RAG: fetch relevant rule descriptions for context ──────────────────
     try:
         from ontology_rag import get_relevant_rules_for_prompt, build_index
         rules = load_rules()
-        build_index(rules)                          # no-op if already built
-        relevant_rules_text = get_relevant_rules_for_prompt(query, top_k=2)
+        build_index(rules)
+        rag_context = get_relevant_rules_for_prompt(query, top_k=2)
     except Exception as e:
-        logger.warning(f"RAG unavailable ({e}), using keyword fallback.")
-        # Compact fallback: just rule names + minimums, no descriptions
-        rules = load_rules()
-        lines = []
-        for k, v in rules.items():
-            if k == "__global_settings__":
-                continue
-            lines.append(
-                f'- "{k}": IAF≥{v.get("iaf_min_operational",0)}, '
-                f'Army≥{v.get("army_min_operational",0)}, '
-                f'Navy≥{v.get("navy_min_operational",0)}'
-            )
-        relevant_rules_text = "\n".join(lines) if lines else "No rules found."
+        logger.warning(f"RAG unavailable ({e}), skipping.")
+        rag_context = ""
 
-    # ── 2. Live capabilities ──────────────────────────────────────────────────
-    caps = get_current_capabilities()
-
-    # ── 3. Trimmed system prompt ──────────────────────────────────────────────
+    # ── 3. System prompt with pre-computed verdicts injected ──────────────────
     system_prompt = (
-        "You are Sankalp-AI, Indian Armed Forces defence intelligence assistant. "
+        "You are Sankalp-AI, Indian Armed Forces defence intelligence assistant.\n"
         "Answer as a decisive senior military commander.\n\n"
-        f"FLEET STATUS: IAF={caps['iaf_op']} op aircraft, "
-        f"Army={caps['army_op']} op assets, Navy={caps['navy_op']} op vessels.\n\n"
-        "RELEVANT DOCTRINE RULES (top matches):\n"
-        f"{relevant_rules_text}\n\n"
-        "EVALUATION INSTRUCTIONS:\n"
-        "1. Treat the FLEET STATUS numbers as the definitive available total. Do NOT run cypher queries to verify them.\n"
-        "2. If the FLEET STATUS meets the rule's minimums, state it is ADEQUATE or SUPERIOR (if army threshold is met).\n"
-        "3. Tiers: 🏆 SUPERIOR | 🟡 ADEQUATE | 🔴 INSUFFICIENT.\n"
-        "State the tier and which branch meets/fails the threshold. Be concise."
+        f"{doctrine_block}\n"
     )
+    if rag_context:
+        system_prompt += f"\nDOCTRINE BACKGROUND (for context only):\n{rag_context}\n"
 
     # ── 4. Cap history at last 6 messages ────────────────────────────────────
     prior = (history or [])[-6:]
@@ -298,7 +356,6 @@ def ask_llm_groq(query: str, history: list | None = None) -> str:
         from groq import Groq
         client = Groq(api_key=api_key)
 
-        # Load tools
         try:
             from agents.ontology_tools import tools_schema, text_to_cypher, similarity_search
         except ImportError:
@@ -311,14 +368,13 @@ def ask_llm_groq(query: str, history: list | None = None) -> str:
             _use_tools = True
 
         if _use_tools:
-            # ── 5. Tool-use call: max_completion_tokens=512 ───────────────────
             completion = client.chat.completions.create(
                 model=llm_model,
                 messages=messages,
                 tools=tools_schema,
                 tool_choice="auto",
                 temperature=0.1,
-                max_completion_tokens=512,      # ← reduced from 1024
+                max_completion_tokens=512,
             )
             response_message = completion.choices[0].message
 
@@ -343,23 +399,22 @@ def ask_llm_groq(query: str, history: list | None = None) -> str:
                         result = "Unknown tool."
                     messages.append({
                         "tool_call_id": tc.id, "role": "tool",
-                        "name": fn_name, "content": str(result)[:1000],  # cap tool result
+                        "name": fn_name, "content": str(result)[:1000],
                     })
                 second = client.chat.completions.create(
                     model=llm_model, messages=messages,
                     temperature=0.2, stream=True,
-                    max_completion_tokens=512,   # ← reduced
+                    max_completion_tokens=512,
                 )
                 return "".join(chunk.choices[0].delta.content or "" for chunk in second)
 
             return response_message.content or ""
 
         else:
-            # ── Fallback: no tools, max_completion_tokens=1024 ────────────────
             completion = client.chat.completions.create(
                 model=llm_model, messages=messages,
                 temperature=0.2,
-                max_completion_tokens=1024,     # ← reduced from 2048
+                max_completion_tokens=1024,
             )
             return completion.choices[0].message.content or ""
 
