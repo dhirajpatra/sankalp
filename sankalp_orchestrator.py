@@ -1,6 +1,7 @@
 """
-sankalp_orchestrator.py – Sankalp Multi-Agent Orchestrator
-Runs all defence agents (IAF, Army, Navy) in sequence, passing shared context.
+sankalp_orchestrator.py – Sankalp Multi-Agent Orchestrator v2.1
+Runs all defence agents (IAF, Army, Navy) then starts the event-driven
+readiness monitor before launching the Streamlit dashboard.
 """
 
 import sys
@@ -109,13 +110,37 @@ def main():
         print("   ⚠️  Neo4j offline – Navy ontology built in SQLite only")
 
     # ══════════════════════════════════════════════════════
+    #  EVENT-DRIVEN READINESS MONITOR  ← NEW
+    # ══════════════════════════════════════════════════════
+    print("\n" + "─" * 50)
+    print("🔔  EVENT-DRIVEN READINESS MONITOR")
+    print("─" * 50)
+    print("\n⚡ Starting background readiness monitor...")
+    try:
+        import sys, os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "agents"))
+        from agents.readiness_monitor import start_monitor, is_running
+        start_monitor()
+        import time; time.sleep(1)   # let thread seed prev_tiers
+        status = "running" if is_running() else "failed to start"
+        print(f"   ✔ Monitor thread {status}")
+        print(f"   ✔ Polling Neo4j every {os.getenv('MONITOR_POLL_SECS', '10')}s")
+        print(f"   ✔ Alerts written to data/processed/sankalp_alerts.db")
+        print(f"   ✔ View live alerts at Dashboard → 🔔 Live Alerts")
+    except Exception as e:
+        print(f"   ⚠️  Monitor could not start: {e} (dashboard will still work)")
+
+    # ══════════════════════════════════════════════════════
     #  DASHBOARD
     # ══════════════════════════════════════════════════════
     print("\n" + "─" * 50)
     print("🟣 Darshan: Launching Streamlit command dashboard...")
     print("   → http://localhost:8501\n")
     print("=" * 60)
-    subprocess.run([sys.executable, "-m", "streamlit", "run", "agents/darshan.py", "--server.port", "8501"])
+    subprocess.run([
+        sys.executable, "-m", "streamlit", "run",
+        "agents/darshan.py", "--server.port", "8501",
+    ])
 
 
 if __name__ == "__main__":
