@@ -1,0 +1,32 @@
+{
+  "_comment": "SANKALP MCP Server Configuration",
+  "_usage": "Copy the 'mcpServers' block into your Claude Desktop config at ~/.config/claude/claude_desktop_config.json",
+
+  "mcpServers": {
+    "sankalp": {
+      "command": "python",
+      "args": ["/ABSOLUTE/PATH/TO/sankalp/mcp_server.py"],
+      "_note": "Replace /ABSOLUTE/PATH/TO/sankalp with your actual project path",
+      "env": {
+        "PYTHONPATH": "/ABSOLUTE/PATH/TO/sankalp"
+      }
+    }
+  },
+
+  "_tools_exposed": [
+    "get_fleet_readiness      — Summary of IAF/Army/Navy operational counts",
+    "get_critical_assets      — Assets below a readiness threshold",
+    "evaluate_doctrine        — Check if fleet can execute a named action",
+    "list_doctrine_rules      — All defined doctrine rules",
+    "get_mission_history      — Recent missions/sorties across branches",
+    "get_top_ready_assets     — Top N assets by readiness score"
+  ],
+
+  "_quick_test": "After connecting, ask Claude: 'What is the current IAF readiness status?'",
+
+  "_claude_connector_note": [
+    "For claude.ai MCP connector (when available as a URL-based MCP server):",
+    "Run: uvicorn mcp_server_http:app --port 8080",
+    "Then add: https://your-server:8080 as the MCP server URL"
+  ]
+}
