@@ -42,14 +42,9 @@ docker compose up -d
 ```
 Neo4j Browser: http://localhost:7474 (user: `neo4j user`, pass: `neo4j password`)
 
-### 3. Run the full pipeline
-```bash
-python sankalp_orchestrator.py
-```
-
 Dashboard opens at: http://localhost:8501
 
-### 4. Without Neo4j (offline / demo mode)
+### 3. Without Neo4j (offline / demo mode)
 The system runs fully in SQLite — Bandhan and Bhavishyavani log warnings and continue.
 
 ## Architecture:
