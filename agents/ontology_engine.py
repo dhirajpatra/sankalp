@@ -31,7 +31,7 @@ NEO4J_URI  = os.getenv("NEO4J_URI",      "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER",     "neo4j")
 NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "sankalp123")
 
-RULES_FILE = "data/processed/ontology_rules.json"
+RULES_FILE = cfg("paths.rules_file")
 
 
 # ── Neo4j ─────────────────────────────────────────────────────────────────────
@@ -280,16 +280,16 @@ def _build_doctrine_assessment(query: str) -> str:
 def _write_default_rules():
     os.makedirs(os.path.dirname(RULES_FILE), exist_ok=True)
     default = {
-        "__global_settings__": {"operational_threshold": 5},
+        "__global_settings__": {"operational_threshold": cfg("ontology.default_rules.global_settings.operational_threshold")},
         "protect northern border from any type of infiltration": {
-            "iaf_min_operational": 5, "army_min_operational": 0, "navy_min_operational": 0,
-            "iaf_sufficient_alone": True, "army_enhances": True, "army_enhancement_threshold": 10,
+            "iaf_min_operational": cfg("ontology.default_rules.protect_northern_border.iaf_min_operational"), "army_min_operational": cfg("ontology.default_rules.protect_northern_border.army_min_operational"), "navy_min_operational": cfg("ontology.default_rules.protect_northern_border.navy_min_operational"),
+            "iaf_sufficient_alone": True, "army_enhances": True, "army_enhancement_threshold": cfg("ontology.default_rules.protect_northern_border.army_enhancement_threshold"),
             "description": "IAF alone handles northern border infiltration. Army ≥10 upgrades to SUPERIOR.",
             "logic_mode": "iaf_primary_army_superior",
         },
         "attack terrorist infiltration from our southern sea borders": {
-            "iaf_min_operational": 2, "army_min_operational": 0, "navy_min_operational": 8,
-            "iaf_sufficient_alone": False, "army_enhances": False, "army_enhancement_threshold": 0,
+            "iaf_min_operational": cfg("ontology.default_rules.attack_terrorist_infiltration_from_our_southern_sea_borders.iaf_min_operational"), "army_min_operational": cfg("ontology.default_rules.attack_terrorist_infiltration_from_our_southern_sea_borders.army_min_operational"), "navy_min_operational": cfg("ontology.default_rules.attack_terrorist_infiltration_from_our_southern_sea_borders.navy_min_operational"),
+            "iaf_sufficient_alone": False, "army_enhances": False, "army_enhancement_threshold": cfg("ontology.default_rules.attack_terrorist_infiltration_from_our_southern_sea_borders.army_enhancement_threshold"),
             "description": "Requires Navy fleet blockade + IAF recon support. Both must meet minimums.",
             "logic_mode": "standard",
         },

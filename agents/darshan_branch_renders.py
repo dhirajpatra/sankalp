@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from config_loader import cfg
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  BRANCH RENDERERS
@@ -238,5 +239,6 @@ def render_metric_detail(panel_key, aircraft_df, crew_df, missions_df,
                 except Exception:
                     pass
         # Full table (last 20)
-        st.caption(f"Latest 20 {panel_title.lower()}")
-        st.dataframe(missions_df.tail(20), use_container_width=True, hide_index=True)
+        rows_per_page = cfg("table_rows_per_page", 20)
+        st.caption(f"Latest {rows_per_page} {panel_title.lower()}")
+        st.dataframe(missions_df.tail(rows_per_page), use_container_width=True, hide_index=True)

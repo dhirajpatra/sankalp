@@ -35,6 +35,8 @@ services:
       - ./data:/app/data
       - ./data/neo4j_import:/var/lib/neo4j/import
       - ./agents:/app/agents
+      - ./config.yml:/app/config.yml:ro        # live config — no rebuild needed
+      - ./config_loader.py:/app/config_loader.py:ro  # loader alongside config
     env_file:
       - .env
     environment:

@@ -13,10 +13,21 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
+try:
+    from config_loader import cfg
+except ImportError:
+    cfg = None  # fallback: cfg not available (e.g. very early import)
+
 logger = logging.getLogger("readiness_monitor")
 
-ALERTS_DB   = "data/processed/sankalp_alerts.db"
-POLL_SECS   = int(os.getenv("MONITOR_POLL_SECS", "10"))
+ALERTS_DB = (
+    cfg("alerts.alerts_db", "data/processed/sankalp_alerts.db") if cfg else
+    os.getenv("ALERTS_DB", "data/processed/sankalp_alerts.db")
+)
+POLL_SECS = int(
+    cfg("alerts.monitor_poll_secs", os.getenv("MONITOR_POLL_SECS", "60")) if cfg else
+    os.getenv("MONITOR_POLL_SECS", "60")
+)
 
 # ── Thread-safe singleton ─────────────────────────────────────────────────────
 _monitor_thread: threading.Thread | None = None

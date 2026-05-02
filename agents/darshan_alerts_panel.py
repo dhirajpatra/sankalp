@@ -7,6 +7,13 @@ Reads from the SQLite alerts DB written by readiness_monitor.py.
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+from config_loader import cfg
+
+try:
+    from streamlit_autorefresh import st_autorefresh
+    _HAS_AUTOREFRESH = True
+except ImportError:
+    _HAS_AUTOREFRESH = False
 
 try:
     from readiness_monitor import (
@@ -50,10 +57,17 @@ def render_alert_badge():
 # ── Full alerts panel ─────────────────────────────────────────────────────────
 
 def render_alerts_panel():
-    st.markdown("## Optimization Engine — Live Alerts")
+    # ── Auto-refresh ──────────────────────────────────────────────────────────
+    refresh_secs = int(cfg("alerts.dashboard_refresh_secs", 30))
+    if _HAS_AUTOREFRESH:
+        st_autorefresh(interval=refresh_secs * 1000, key="alerts_autorefresh")
+
+    st.markdown("## Real-Time Optimization Engine Alerts")
+    poll_secs = int(cfg("alerts.monitor_poll_secs", 10))
     st.caption(
-        "Event-driven monitoring: the readiness engine polls Neo4j every 10 s, "
-        "evaluates all doctrine rules, and auto-writes alerts when tiers change."
+        f"Event-driven monitoring: the readiness engine polls Neo4j every {poll_secs} s, "
+        f"evaluates all doctrine rules, and auto-writes alerts when tiers change. "
+        f"Dashboard refreshes every {refresh_secs} s."
     )
 
     # ── Controls row ──────────────────────────────────────────────────────────
@@ -81,7 +95,7 @@ def render_alerts_panel():
     st.markdown("---")
 
     # ── Fleet readiness timeline ───────────────────────────────────────────────
-    snapshots = get_snapshots(limit=60)
+    snapshots = get_snapshots(limit=int(cfg("alerts.snapshot_limit", 60)))
     if len(snapshots) >= 2:
         st.markdown("#### Fleet readiness over time")
         df_snap = pd.DataFrame(snapshots)
@@ -153,7 +167,7 @@ def render_alerts_panel():
 
     # ── Alert log ─────────────────────────────────────────────────────────────
     st.markdown("#### Event log")
-    alerts = get_recent_alerts(limit=100, unread_only=not show_all)
+    alerts = get_recent_alerts(limit=int(cfg("alerts.alert_log_limit", 100)), unread_only=not show_all)
 
     if not alerts:
         st.success("No alerts. All doctrine rules stable." if not show_all else "No alerts recorded yet.")

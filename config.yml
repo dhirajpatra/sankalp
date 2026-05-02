@@ -83,6 +83,8 @@ readiness:
   # Global operational threshold: assets scoring >= this are "Operational"
   # Also persisted in ontology_rules.json under __global_settings__
   operational_threshold: 5
+  warning_threshold: 3
+  critical_threshold: 1
 
   # Watch band: assets between (threshold - watch_band) and threshold
   watch_band: 20
@@ -257,11 +259,31 @@ neo4j_schema:
 docker:
   neo4j_container: "sankalp-neo4j"
   agents_container: "sankalp-agents"
-  neo4j_healthcheck_interval: 10       # seconds
-  neo4j_healthcheck_retries: 30
+  neo4j_healthcheck_interval: 60       # seconds
+  neo4j_healthcheck_retries: 10
   neo4j_startup_wait: 10              # seconds to wait after compose up before setup
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 logging:
   level: "INFO"
   format: "%(levelname)s [%(name)s] %(message)s"
+
+# -- Table Rows Per Page --
+table_rows_per_page: 20
+
+# ── Alerts & Readiness Monitor ────────────────────────────────────────────────
+alerts:
+  # Interval (seconds) between Neo4j polls in the background monitor thread
+  monitor_poll_secs: 60
+
+  # How often (seconds) the Darshan Alerts panel auto-refreshes in the browser
+  dashboard_refresh_secs: 30
+
+  # Max fleet snapshots fetched for the readiness timeline chart
+  snapshot_limit: 120
+
+  # Max alert events shown in the event log
+  alert_log_limit: 50
+
+  # Path to the SQLite alerts database (runtime-generated)
+  alerts_db: "data/processed/sankalp_alerts.db"

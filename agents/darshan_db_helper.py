@@ -4,6 +4,7 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 from neo4j import GraphDatabase
+from config_loader import cfg
 
 load_dotenv(override=True)
 NEO4J_URI = os.getenv("NEO4J_URI")
@@ -18,8 +19,8 @@ def _parse_status(df, score_col="final_readiness_score"):
         df[score_col] = pd.to_numeric(df[score_col], errors="coerce").fillna(0)
         status_upper = df["operational_status"].str.upper()
         df.loc[status_upper == "OPERATIONAL", score_col] = 100
-        df.loc[status_upper.isin(["WATCH", "NEEDS_ATTENTION", "NEEDS ATTENTION"]), score_col] = 50
-        df.loc[status_upper.isin(["MAINTENANCE_REQUIRED", "MAINTENANCE REQUIRED", "CRITICAL"]), score_col] = 20
+        df.loc[status_upper.isin(["WATCH", "NEEDS_ATTENTION", "NEEDS ATTENTION"]), score_col] = cfg("readiness.warning_threshold")
+        df.loc[status_upper.isin(["MAINTENANCE_REQUIRED", "MAINTENANCE REQUIRED", "CRITICAL"]), score_col] = cfg("readiness.critical_threshold")
     return df
 
 @st.cache_data(ttl=10)
@@ -78,7 +79,7 @@ def _score_color(s):
     except Exception:
         t = 5
     if s >= t: return "#00e676"
-    if s >= max(0, t - 20): return "#ff9800"
+    if s >= max(0, t - cfg("readiness.warning_threshold")): return "#ff9800"
     return "#ff4b4b"
 
 def _score_badge(s):
@@ -88,5 +89,5 @@ def _score_badge(s):
     except Exception:
         t = 5
     if s >= t: return "🟢 Operational"
-    if s >= max(0, t - 20): return "🟡 Needs Attention"
+    if s >= max(0, t - cfg("readiness.critical_threshold")): return "🟡 Needs Attention"
     return "🔴 Critical"

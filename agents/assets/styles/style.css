@@ -194,3 +194,9 @@ hr {
     padding-left: 2rem;
     padding-right: 2rem;
 }
+
+/* Admin import — destructive action label */
+.import-mode-danger {
+    color: #d32f2f;
+    font-weight: 600;
+}

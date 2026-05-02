@@ -14,6 +14,7 @@ import time
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
 from pathlib import Path
+from config_loader import cfg
 
 # Walk up from agents/ to find .env in project root (local dev).
 # In Docker, env vars are injected directly — no .env file needed.
@@ -31,7 +32,7 @@ _load_env()
 logging.basicConfig(level=logging.INFO, format="%(levelname)s [Bandhan] %(message)s")
 logger = logging.getLogger("bandhan")
 
-GOLD_DB    = "data/processed/sankalp_gold.db"
+GOLD_DB    = cfg("paths.iaf_gold_db")
 NEO4J_URI  = os.getenv("NEO4J_URI",      "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER",     "neo4j")
 NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "password")
@@ -41,7 +42,7 @@ def _get_status(score):
     import json
     threshold = 5
     try:
-        with open("data/processed/ontology_rules.json", "r") as f:
+        with open(cfg("paths.rules_file"), "r") as f:
             rules = json.load(f)
             threshold = rules.get("__global_settings__", {}).get("operational_threshold", 5)
     except Exception:

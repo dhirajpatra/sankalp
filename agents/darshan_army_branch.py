@@ -5,6 +5,7 @@ from datetime import date
 from darshan_db_helper import load_army, _get_neo4j_driver, _score_color, _score_badge
 from darshan_branch_renders import clickable_metrics_row, render_metric_detail, render_readiness_chart
 from agents.ontology_engine import get_operational_threshold
+from config_loader import cfg
 
 # ────────────────────────────────────────────────────────────────────────────
 #  ARMY BRANCH
@@ -33,9 +34,9 @@ def render_army():
     tab = st.session_state.tab
 
     if tab == 0:
-        op   = (assets_df[score_col] >= 5).sum()
-        warn = ((assets_df[score_col] >= 40) & (assets_df[score_col] < 5)).sum()
-        crit = (assets_df[score_col] < 40).sum()
+        op   = (assets_df[score_col] >= cfg("readiness.operational_threshold")).sum()
+        warn = ((assets_df[score_col] >= cfg("readiness.warning_threshold")) & (assets_df[score_col] < cfg("readiness.operational_threshold"))).sum()
+        crit = (assets_df[score_col] < cfg("readiness.critical_threshold")).sum()
 
         # Reset panel if switching from another branch
         if st.session_state.metric_panel not in (None, "critical", "watch", "operational", "army_crew", "ops"):

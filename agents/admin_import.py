@@ -133,7 +133,18 @@ def render_admin_dashboard(neo4j_uri, neo4j_user, neo4j_password):
     with c2:
         st.markdown("### 2. Configure Import")
         data_type = st.selectbox("Select Data Type", list(IMPORT_TEMPLATES.keys()))
-        import_mode = st.radio("Import Mode", ["Insert / Update (MERGE)", "Overwrite (DELETE ALL existing first)"], horizontal=True)
+        st.markdown(
+            "**Import Mode**<br>"
+            "<span style='font-size:13px;'>🟢 Insert / Update (MERGE) &nbsp;|&nbsp; "
+            "<span class='import-mode-danger'>🔴 Overwrite (DELETE ALL existing first)</span></span>",
+            unsafe_allow_html=True,
+        )
+        import_mode = st.radio(
+            "Import Mode",
+            ["Insert / Update (MERGE)", "Overwrite (DELETE ALL existing first)"],
+            horizontal=True,
+            label_visibility="collapsed",
+        )
         
         st.caption("Expected CSV Format (Headers & Example Data):")
         st.code(IMPORT_TEMPLATES[data_type]["example"], language="csv")
