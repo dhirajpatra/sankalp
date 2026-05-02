@@ -274,7 +274,7 @@ table_rows_per_page: 20
 # ── Alerts & Readiness Monitor ────────────────────────────────────────────────
 alerts:
   # Interval (seconds) between Neo4j polls in the background monitor thread
-  monitor_poll_secs: 60
+  monitor_poll_secs: 30
 
   # How often (seconds) the Darshan Alerts panel auto-refreshes in the browser
   dashboard_refresh_secs: 30

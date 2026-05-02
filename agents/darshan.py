@@ -15,6 +15,13 @@ from config_loader import cfg
 from darshan_navy_branch import render_navy
 from darshan_iaf_branch import render_iaf
 from darshan_army_branch import render_army
+try:
+    from darshan_geo_map_3d import render_geo_map_3d
+except ImportError:
+    try:
+        from agents.darshan_geo_map_3d import render_geo_map_3d
+    except ImportError:
+        render_geo_map_3d = None
 
 try:
     from admin_import import render_admin_dashboard
@@ -293,6 +300,11 @@ elif branch == "navy":
 elif branch == "ontology":
     render_ontology_engine()
 elif branch == "alerts":
-    render_alerts_panel()          # ← new
+    render_alerts_panel()
+elif branch == "map3d":
+    if render_geo_map_3d:
+        render_geo_map_3d()
+    else:
+        st.error("3D Globe module not found. Ensure `agents/darshan_geo_map_3d.py` exists.")
 elif branch == "admin":
     render_admin_dashboard(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)

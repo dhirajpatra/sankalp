@@ -34,12 +34,13 @@ def render_left_sidebar():
         )
 
         branches = [
-            ("iaf",      "✈️", "Indian Air Force",    "IAF"),
-            ("army",     "🪖", "Indian Army",          "ARMY"),
-            ("navy",     "⚓", "Indian Navy",           "NAVY"),
-            ("ontology", "🧠", "Ontology Engine",       "LOGIC"),
-            ("alerts",   "🔔", "Live Alerts",           "ALERTS"),  # ← new
-            ("admin",    "⚙️", "Admin / Data Import",  "ADMIN"),
+            ("iaf",      "✈️",  "Indian Air Force",    "IAF"),
+            ("army",     "🪖",  "Indian Army",          "ARMY"),
+            ("navy",     "⚓",  "Indian Navy",           "NAVY"),
+            ("ontology", "🧠",  "Ontology Engine",       "LOGIC"),
+            ("alerts",   "🔔",  "Live Alerts",           "ALERTS"),
+            ("map3d",    "🌐",  "3-D Globe",             "GLOBE"),
+            ("admin",    "⚙️", "Admin / Data Import",   "ADMIN"),
         ]
         for key, icon, label, short in branches:
             if st.button(f"{icon}  {label}", key=f"branch_{key}", use_container_width=True):
@@ -68,7 +69,7 @@ def render_left_sidebar():
                 st.markdown(f"**🛡️ Assets:** {len(df_a)}")
                 st.markdown(f"**👤 Personnel:** {len(df_c)}")
                 st.markdown(f"**⚔️ Operations:** {len(df_m)}")
-            elif branch in ("navy", "alerts", "ontology", "admin"):
+            elif branch in ("navy", "alerts", "ontology", "admin", "map3d"):
                 df_v, df_c, df_s = load_navy()
                 st.markdown(f"**⚓ Vessels:** {len(df_v)}")
                 st.markdown(f"**👤 Crew:** {len(df_c)}")
