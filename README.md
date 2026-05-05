@@ -1,4 +1,4 @@
-# 🛡️ SANKALP — Defence Ontology Platform
+# 🛡️ SANKALP — Open Source Defence Ontology Platform
 
 > **संकल्प** (Sankalp) — *"A solemn resolve"*  
 > "Ontology as Digital Twin" for Indian Defence (DRDO / IAF / Army / Navy).
