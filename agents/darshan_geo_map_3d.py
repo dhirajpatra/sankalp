@@ -112,7 +112,7 @@ def render_geo_map_3d():
         .replace("__FORCE_REFRESH__", force_flag)
     )
 
-    st.iframe(srcdoc=html, height=680, scrolling=False)
+    st.components.v1.html(html, height=680, scrolling=False)
 
     # ── Legend ────────────────────────────────────────────────────────────────
     st.markdown(

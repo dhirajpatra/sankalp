@@ -11,6 +11,8 @@
 
 ---
 
+
+
 ## 🧠 Architecture — 5 Core Agents
 
 | Agent | Sanskrit Name | Role |
@@ -23,9 +25,71 @@
 
 ---
 
+## 📸 Screenshots
+
+### Dashboard Overview
+![Dashboard Overview](docs/images/1.png)
+
+### IAF Branch — Fleet Readiness
+![IAF Branch Fleet Readiness](docs/images/2.png)
+
+### IAF Branch — Asset Detail
+![IAF Asset Detail](docs/images/3.png)
+
+### Army Branch — Readiness Dashboard
+![Army Branch Readiness](docs/images/4.png)
+
+### Army Branch — Asset Detail
+![Army Asset Detail](docs/images/5.png)
+
+### Navy Branch — Fleet Status
+![Navy Branch Fleet Status](docs/images/6.png)
+
+### Navy Branch — Asset Detail
+![Navy Asset Detail](docs/images/7.png)
+
+### 🧠 Ontology Engine — AI Query Interface
+![Ontology Engine AI Query](docs/images/8.png)
+
+### 🧠 Ontology Engine — Doctrine Evaluation
+![Ontology Doctrine Evaluation](docs/images/9.png)
+
+### 🔔 Live Alerts — Readiness Monitor
+![Live Alerts Readiness Monitor](docs/images/10.png)
+
+### 🔔 Live Alerts — Event Log
+![Live Alerts Event Log](docs/images/11.png)
+
+### 🗺️ Geospatial Map — Asset Locations
+![Geospatial Map Asset Locations](docs/images/12.png)
+
+### 🌐 3-D Globe — Asset Map
+![3D Globe Asset Map](docs/images/13.png)
+
+### ⚔️ Threat Intelligence — Scenario Overview
+![Threat Intelligence Scenarios](docs/images/14.png)
+
+### ⚔️ Threat Intelligence — Deep Dive
+![Threat Intelligence Deep Dive](docs/images/15.png)
+
+### 📋 Mission Planning (Yojana)
+![Mission Planning Yojana](docs/images/16.png)
+
+### ⚙️ Automation Engine
+![Automation Engine](docs/images/17.png)
+
+### 🔧 Admin — Data Import
+![Admin Data Import](docs/images/18.png)
+
+### 📊 Neo4j Graph Browser
+![Neo4j Graph Browser](docs/images/19.png)
+
+---
+
 ## 🏗️ System Architecture
 
 ![Architecture Diagram](docs/sankalp_architecture.svg)
+
 
 The platform is built on a layered, event-driven pipeline:
 

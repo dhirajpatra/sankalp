@@ -374,8 +374,8 @@ def ask_llm_groq(query: str, history: list | None = None) -> str:
                 messages=messages,
                 tools=tools_schema,
                 tool_choice="auto",
-                temperature=float(cfg("llm.temperature_tool")),
-                max_completion_tokens=int(cfg("llm.tool_use_max_tokens")),
+                temperature=float(cfg("llm.temperature_tool", 0.1)),
+                max_completion_tokens=int(cfg("llm.tool_use_max_tokens", 512)),
             )
             response_message = completion.choices[0].message
 
@@ -404,8 +404,8 @@ def ask_llm_groq(query: str, history: list | None = None) -> str:
                     })
                 second = client.chat.completions.create(
                     model=llm_model, messages=messages,
-                    temperature=float(cfg("llm.temperature_chat")), stream=True,
-                    max_completion_tokens=int(cfg("llm.tool_use_max_tokens")),
+                    temperature=float(cfg("llm.temperature_chat", 0.2)), stream=True,
+                    max_completion_tokens=int(cfg("llm.tool_use_max_tokens", 512)),
                 )
                 return "".join(chunk.choices[0].delta.content or "" for chunk in second)
 
@@ -414,8 +414,8 @@ def ask_llm_groq(query: str, history: list | None = None) -> str:
         else:
             completion = client.chat.completions.create(
                 model=llm_model, messages=messages,
-                temperature=float(cfg("llm.temperature_chat")),
-                max_completion_tokens=int(cfg("llm.fallback_max_tokens")),
+                temperature=float(cfg("llm.temperature_chat", 0.2)),
+                max_completion_tokens=int(cfg("llm.fallback_max_tokens", 1024)),
             )
             return completion.choices[0].message.content or ""
 

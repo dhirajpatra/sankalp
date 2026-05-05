@@ -111,7 +111,7 @@ def text_to_cypher(query: str, groq_client) -> str:
             {"role": "user",   "content": query},
         ],
         temperature=0.0,
-        max_completion_tokens=int(cfg("llm.cypher_max_tokens")),
+        max_completion_tokens=int(cfg("llm.cypher_max_tokens", 200)),
     )
 
     cypher = completion.choices[0].message.content.strip()
