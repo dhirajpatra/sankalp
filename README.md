@@ -27,9 +27,6 @@
 
 ## 📸 Screenshots
 
-### Dashboard Overview
-![Dashboard Overview](docs/images/1.png)
-
 ### IAF Branch — Fleet Readiness
 ![IAF Branch Fleet Readiness](docs/images/2.png)
 
