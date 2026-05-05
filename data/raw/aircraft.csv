@@ -1,0 +1,115 @@
+aircraft_id,aircraft_type,squadron,base_location,last_maintenance_date,flight_hours,total
+AC_009,Supermarine Spitfire,Tigers,Punjab (Northern Border),2025-09-18,200,158
+AC_010,Hawker Tempest II,Winged Arrows,Ladakh (Northern Border),2025-09-19,250,226
+AC_011,De Havilland Vampire DH 100,Oorials,Kashmir (Northern Border),2025-09-20,255,386
+AC_012,Dassault Ouragan,Tuskers,Jammu (Northern Border) ,2025-09-21,201,88
+AC_013,Dassault Mystere IVa,Dragons,Arunachal (Eastern Border) ,2025-09-22,251,110
+AC_014,Hawker Hunter,Battle Axes,Assam (Eastern Border) ,2025-09-23,256,252
+AC_015,Folland / HAL Gnat / Ajeet,Eight Pursoots,Rajasthan (Western Border) ,2025-09-24,202,262
+AC_016,Mikoyan MiG-21,Wolfpack,Punjab (Northern Border) ,2025-09-25,252,843
+AC_017,HAL Marut HF-24,Bulls,Gujarat (Western Border) ,2025-09-26,257,84
+AC_018,Sukhoi Su-7,Flying Lancers,Gujarat (Western Border) ,2025-09-27,203,100
+AC_019,Mikoyan MiG-23,Black Cobras,Rajasthan (Western Border) ,2025-09-28,253,162
+AC_020,Mikoyan MiG-25,Goldern Arrows,Unknown Location ,2025-09-29,258,10
+AC_021,Mikoyan MiG-27,Flying Bullets,Assam (Eastern Border) ,2025-09-30,204,165
+AC_022,Douglas Dakota C-47,Lightnings,Unknown Location ,2025-10-01,254,206
+AC_023,De Havilland Devon,Hawks,Unknown Location ,2025-10-02,259,22
+AC_024,Fairchild Packet C-119,Flaming Arrows,Unknown Location ,2025-10-03,205,79
+AC_025,Ilyushin Il-14,First Supersonics,Unknown Location ,2025-10-04,255,28
+AC_026,Vickers Viscount,Rhinos,Unknown Location ,2025-10-05,260,2
+AC_027,De Havilland Canada Otter DHC-3,Lions,Unknown Location ,2025-10-06,206,36
+AC_028,Antonov An 12,Flying Daggers,Unknown Location ,2025-10-07,256,62
+AC_029,Lockheed Super Constellation,Black Archers,Unknown Location ,2025-10-08,261,9
+AC_030,De Havilland Canada Caribou DHC-4,Falcons,Unknown Location ,2025-10-09,207,26
+AC_031,Hawker Siddeley HS-748,Trisonics,Unknown Location ,2025-10-10,257,68
+AC_032,Tupolev Tu-124,Tigers,Punjab (Northern Border) ,2025-10-11,262,3
+AC_033,Boeing B 737-200,Winged Arrows,Ladakh (Northern Border) ,2025-10-12,208,9
+AC_034,Antonov An-32,Oorials,Kashmir (Northern Border) ,2025-10-13,258,122
+AC_035,Ilyushin Il-76,Tuskers,Jammu (Northern Border) ,2025-10-14,263,27
+AC_036,Dornier Do-228,Dragons,Arunachal (Eastern Border) ,2025-10-15,209,31
+AC_037,Embraer Legacy EBJ 135,Battle Axes,Assam (Eastern Border) ,2025-10-16,259,4
+AC_038,Lockheed C-130 Hercules,Eight Pursoots,Rajasthan (Western Border) ,2025-10-17,264,6
+AC_039,Boeing C-17 Globemaster III,Wolfpack,Punjab (Northern Border) ,2025-10-18,210,10
+AC_040,Sikorsky Whirlwind S-55C,Bulls,Gujarat (Western Border) ,2025-10-19,260,5
+AC_041,Bell Bell 47G,Flying Lancers,Gujarat (Western Border) ,2025-10-20,265,16
+AC_042,Sikorsky S-62B,Black Cobras,Rajasthan (Western Border) ,2025-10-21,211,4
+AC_043,Mil Mi-4,Goldern Arrows,Unknown Location ,2025-10-22,261,78
+AC_044,Aerospatiale Alouette III Chetak,Flying Bullets,Assam (Eastern Border) ,2025-10-23,266,226
+AC_045,Mil Mi-8,Lightnings,Unknown Location ,2025-10-24,212,85
+AC_046,Aerospatiale Cheetah SA-315,Hawks,Unknown Location ,2025-10-25,262,152
+AC_047,Mil Mi-24/Mi-35,Flaming Arrows,Unknown Location ,2025-10-26,267,15
+AC_048,Mil Mi-26,First Supersonics,Unknown Location ,2025-10-27,213,4
+AC_049,HAL Dhruv,Rhinos,Unknown Location ,2025-10-28,263,33
+AC_050,Mil Mi-17,Lions,Unknown Location ,2025-10-29,268,119
+AC_051,De Havilland Tigermoth DH 82,Flying Daggers,Unknown Location ,2025-10-30,214,83
+AC_052,North American Harvard T-6,Black Archers,Unknown Location ,2025-10-31,264,223
+AC_053,Percival Prentice,Falcons,Unknown Location ,2025-11-01,269,55
+AC_054,HAL HT-2,Trisonics,Unknown Location ,2025-11-02,215,132
+AC_055,HAL Kiran HJT-16,Tigers,Unknown Location ,2025-11-03,265,146
+AC_056,PZL Iskra TS-11,Winged Arrows,Unknown Location ,2025-11-04,270,66
+AC_057,HAL Deepak HPT-32,Oorials,Unknown Location ,2025-11-05,216,54
+AC_058,HAL HJT-36,Tuskers,Unknown Location ,2025-11-06,266,3
+AC_059,Bae Hawk 132,Dragons,,2025-11-07,271,32
+AC_060,Pilatus PC-7,Battle Axes,,2025-11-08,217,75
+AC_061,Consolidated Liberator B-24,Eight Pursoots,,2025-11-09,267,43
+AC_062,English Electric Canberra,Wolfpack,,2025-11-10,272,120
+AC_063,Auster Auster AOP-9,Bulls,,2025-11-11,218,51
+AC_064,HAL Krishak/ Pushpak,Flying Lancers,,2025-11-12,268,48
+AC-001,HAL Tejas,Flying Bullets,,2024-08-15,850,120
+AC-002,HAL Tejas,Flying Bullets,,2024-07-22,1200,30
+AC-003,Su-30MKI,Winged Arrows,,2024-09-10,2150,40
+AC-004,Su-30MKI,Winged Arrows,,2024-06-30,890,130
+AC-005,Mirage 2000,Eagle Squadron,,2024-10-05,3200,300
+AC-006,HAL Tejas,Phoenix Flight,,2024-09-18,620,50
+AC-007,Jaguar,Night Hunters,,2024-07-14,2800,70
+AC-008,Jaguar,Night Hunters,,2024-08-28,1950,10
+AC-001,HAL Tejas,Flying Bullets,,2024-08-15,850,92
+AC-002,HAL Tejas,Flying Bullets,,2024-07-22,1200,88
+AC-003,Su-30MKI,Winged Arrows,,2024-09-10,2150,76
+AC-004,Su-30MKI,Winged Arrows,,2024-06-30,890,91
+AC-005,Mirage 2000,Eagle Squadron,,2024-10-05,3200,65
+AC-006,HAL Tejas,Phoenix Flight,,2024-09-18,620,94
+AC-007,Jaguar,Night Hunters,,2024-07-14,2800,71
+AC-008,Jaguar,Night Hunters,,2024-08-28,1950,80
+AC-009,HAL Tejas,Phoenix Flight,,2024-10-01,450,97
+AC-010,Su-30MKI,Winged Arrows,,2024-09-25,1780,82
+AC-011,Mirage 2000,Eagle Squadron,,2024-08-10,2900,69
+AC-012,Jaguar,Night Hunters,,2024-09-05,2100,77
+AC-013,HAL Tejas,Flying Bullets,,2024-07-30,1100,89
+AC-014,Su-30MKI,Winged Arrows,,2024-10-12,2450,73
+AC-015,Mirage 2000,Eagle Squadron,,2024-06-18,3400,62
+AC-016,Jaguar,Night Hunters,,2024-08-20,2650,72
+AC-017,HAL Tejas,Phoenix Flight,,2024-09-28,530,95
+AC-018,Su-30MKI,Winged Arrows,,2024-10-15,1950,79
+AC-019,Mirage 2000,Eagle Squadron,,2024-07-05,3100,67
+AC-020,Jaguar,Night Hunters,,2024-09-12,2300,75
+AC-021,HAL Tejas,Flying Bullets,,2024-10-20,720,93
+AC-022,Su-30MKI,Winged Arrows,,2024-08-25,2050,78
+AC-023,Mirage 2000,Eagle Squadron,,2024-09-30,2750,70
+AC-024,Jaguar,Night Hunters,,2024-10-08,2400,74
+AC-025,HAL Tejas,Phoenix Flight,,2024-07-18,580,94
+AC-026,Su-30MKI,Winged Arrows,,2024-10-22,1680,84
+AC-027,Mirage 2000,Eagle Squadron,,2024-06-25,3550,60
+AC-028,Jaguar,Night Hunters,,2024-09-15,2200,76
+AC-029,HAL Tejas,Flying Bullets,,2024-08-05,980,90
+AC-030,Su-30MKI,Winged Arrows,,2024-10-28,1880,80
+AC-031,Mirage 2000,Eagle Squadron,,2024-07-22,3250,64
+AC-032,Jaguar,Night Hunters,,2024-09-08,2500,73
+AC-033,HAL Tejas,Phoenix Flight,,2024-10-30,490,96
+AC-034,Su-30MKI,Winged Arrows,,2024-08-12,2120,77
+AC-035,Mirage 2000,Eagle Squadron,,2024-10-01,2950,68
+AC-036,Jaguar,Night Hunters,,2024-09-20,2600,72
+AC-037,HAL Tejas,Flying Bullets,,2024-07-28,810,91
+AC-038,Su-30MKI,Winged Arrows,,2024-10-18,1720,83
+AC-039,Mirage 2000,Eagle Squadron,,2024-06-30,3480,61
+AC-040,Jaguar,Night Hunters,,2024-09-25,2250,75
+AC-041,HAL Tejas,Phoenix Flight,,2024-10-05,560,95
+AC-042,Su-30MKI,Winged Arrows,,2024-08-30,2000,79
+AC-043,Mirage 2000,Eagle Squadron,,2024-09-28,2850,69
+AC-044,Jaguar,Night Hunters,,2024-10-12,2350,74
+AC-045,HAL Tejas,Flying Bullets,,2024-07-10,670,93
+AC-046,Su-30MKI,Winged Arrows,,2024-10-25,1900,80
+AC-047,Mirage 2000,Eagle Squadron,,2024-06-20,3600,59
+AC-048,Jaguar,Night Hunters,,2024-09-18,2450,73
+AC-049,HAL Tejas,Phoenix Flight,,2024-10-15,510,96
+AC-050,Su-30MKI,Winged Arrows,,2024-08-08,2080,78

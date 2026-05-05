@@ -1,0 +1,241 @@
+crew_id,name,rank,aircraft_type_qualified
+CR-001,Squadron Leader Rajesh Kumar,Squadron Leader,HAL Tejas
+CR-002,Flying Officer Priya Singh,Flying Officer,HAL Tejas
+CR-003,Wing Commander Vikram Patel,Wing Commander,Su-30MKI
+CR-004,Flight Lieutenant Arjun Reddy,Flight Lieutenant,Su-30MKI
+CR-005,Squadron Leader Anil Sharma,Squadron Leader,Mirage 2000
+CR-006,Flying Officer Deepak Gupta,Flying Officer,Jaguar
+CR-007,Flight Lieutenant Nikhil Desai,Flight Lieutenant,Jaguar
+CR-008,Flying Officer Neha Verma,Flying Officer,HAL Tejas
+CR-009,Wing Commander Suresh Kumar,Wing Commander,Su-30MKI
+CR-010,Squadron Leader Rohit Singh,Squadron Leader,Mirage 2000
+CR-011,Flight Lieutenant Harpreet Singh,Flight Lieutenant,HAL Tejas
+CR-012,Flying Officer Vivek Malhotra,Flying Officer,Su-30MKI
+CR-013,Wing Commander Amit Desai,Wing Commander,Jaguar
+CR-014,Squadron Leader Sanjay Verma,Squadron Leader,Mirage 2000
+CR-015,Flying Officer Naveen Sharma,Flying Officer,HAL Tejas
+CR-016,Flight Lieutenant Rohan Patel,Flight Lieutenant,Su-30MKI
+CR-017,Wing Commander Kiran Nair,Wing Commander,Mirage 2000
+CR-018,Flying Officer Anupam Dey,Flying Officer,Jaguar
+CR-019,Squadron Leader Manoj Kumar,Squadron Leader,HAL Tejas
+CR-020,Flight Lieutenant Ravi Teja,Flight Lieutenant,Su-30MKI
+CR-021,Flying Officer Arjun Singh,Flying Officer,Mirage 2000
+CR-022,Wing Commander Siddharth Dutt,Wing Commander,Jaguar
+CR-023,Flying Officer Nitin Gupta,Flying Officer,HAL Tejas
+CR-024,Flight Lieutenant Varun Mishra,Flight Lieutenant,Su-30MKI
+CR-025,Squadron Leader Shantanu Roy,Squadron Leader,Jaguar
+CR-026,Flying Officer Brijesh Kumar,Flying Officer,Mirage 2000
+CR-027,Flight Lieutenant Abhishek Saxena,Flight Lieutenant,HAL Tejas
+CR-028,Wing Commander Manish Singh,Wing Commander,Su-30MKI
+CR-029,Flying Officer Samir Desai,Flying Officer,Jaguar
+CR-030,Squadron Leader Hari Prasad,Squadron Leader,Mirage 2000
+CR-031,Flying Officer Tushar Sharma,Flying Officer,HAL Tejas
+CR-032,Flight Lieutenant Vikram Kumar,Flight Lieutenant,Su-30MKI
+CR-033,Wing Commander Akhil Nair,Wing Commander,Jaguar
+CR-034,Flying Officer Arun Bansal,Flying Officer,Mirage 2000
+CR-035,Squadron Leader Harsh Verma,Squadron Leader,HAL Tejas
+CR-036,Flight Lieutenant Shankar Reddy,Flight Lieutenant,Su-30MKI
+CR-037,Flying Officer Chirag Patel,Flying Officer,Jaguar
+CR-038,Wing Commander Arvind Singh,Wing Commander,Mirage 2000
+CR-039,Flying Officer Dinesh Kumar,Flying Officer,HAL Tejas
+CR-040,Flight Lieutenant Gagan Sharma,Flight Lieutenant,Su-30MKI
+CR-041,Squadron Leader Hector D'Silva,Squadron Leader,Jaguar
+CR-042,Flying Officer Ijay Kapoor,Flying Officer,Mirage 2000
+CR-043,Flight Lieutenant Jasper Fernandes,Flight Lieutenant,HAL Tejas
+CR-044,Wing Commander Karim Siddiqui,Wing Commander,Su-30MKI
+CR-045,Flying Officer Laxman Iyer,Flying Officer,Jaguar
+CR-046,Squadron Leader Mohan Rao,Squadron Leader,Mirage 2000
+CR-047,Flying Officer Neelesh Yadav,Flying Officer,HAL Tejas
+CR-048,Flight Lieutenant Omkar Desai,Flight Lieutenant,Su-30MKI
+CR-049,Wing Commander Pranav Menon,Wing Commander,Jaguar
+CR-050,Flying Officer Quentin Alves,Flying Officer,Mirage 2000
+CR-051,Squadron Leader Rajiv Singh,Squadron Leader,HAL Tejas
+CR-052,Flight Lieutenant Sameer Kapoor,Flight Lieutenant,Su-30MKI
+CR-053,Flying Officer Tanvi Nair,Flying Officer,Jaguar
+CR-054,Wing Commander Umesh Verma,Wing Commander,Mirage 2000
+CR-055,Flying Officer Vikram Bhat,Flying Officer,HAL Tejas
+CR-056,Squadron Leader Wazir Khan,Squadron Leader,Su-30MKI
+CR-057,Flight Lieutenant Ashok Reddy,Flight Lieutenant,Jaguar
+CR-058,Flying Officer Balaji Iyer,Flying Officer,Mirage 2000
+CR-059,Wing Commander Chetan Singh,Wing Commander,HAL Tejas
+CR-060,Flying Officer Daksh Sharma,Flying Officer,Su-30MKI
+CR-061,Squadron Leader Eshan Desai,Squadron Leader,Jaguar
+CR-062,Flight Lieutenant Faraz Khan,Flight Lieutenant,Mirage 2000
+CR-063,Flying Officer Gauri Kapoor,Flying Officer,HAL Tejas
+CR-064,Wing Commander Harsh Nair,Wing Commander,Su-30MKI
+CR-065,Flying Officer Indrajit Rao,Flying Officer,Jaguar
+CR-066,Squadron Leader Janak Kumar,Squadron Leader,Mirage 2000
+CR-067,Flight Lieutenant Karthik Sinha,Flight Lieutenant,HAL Tejas
+CR-068,Flying Officer Leela Sharma,Flying Officer,Su-30MKI
+CR-069,Wing Commander Mahesh Singh,Wing Commander,Jaguar
+CR-070,Flying Officer Nila Verma,Flying Officer,Mirage 2000
+CR-071,Squadron Leader Ojas Patel,Squadron Leader,HAL Tejas
+CR-072,Flight Lieutenant Pramod Yadav,Flight Lieutenant,Su-30MKI
+CR-073,Wing Commander Quincy Fernandes,Wing Commander,Jaguar
+CR-074,Flying Officer Rohini Dey,Flying Officer,Mirage 2000
+CR-075,Squadron Leader Saurav Kumar,Squadron Leader,HAL Tejas
+CR-076,Flight Lieutenant Tarun Mishra,Flight Lieutenant,Su-30MKI
+CR-077,Flying Officer Uma Sharma,Flying Officer,Jaguar
+CR-078,Wing Commander Vaibhav Singh,Wing Commander,Mirage 2000
+CR-079,Flying Officer Walid Hassan,Flying Officer,HAL Tejas
+CR-080,Squadron Leader Yaman Patel,Squadron Leader,Su-30MKI
+CR-081,Flight Lieutenant Zain Khan,Flight Lieutenant,Jaguar
+CR-082,Flying Officer Amrita Kapoor,Flying Officer,Mirage 2000
+CR-083,Wing Commander Bhavesh Kumar,Wing Commander,HAL Tejas
+CR-084,Flying Officer Chandra Sharma,Flying Officer,Su-30MKI
+CR-085,Squadron Leader Dhananjay Singh,Squadron Leader,Jaguar
+CR-086,Flight Lieutenant Ehaan Desai,Flight Lieutenant,Mirage 2000
+CR-087,Flying Officer Farida Khan,Flying Officer,HAL Tejas
+CR-088,Wing Commander Gautam Iyer,Wing Commander,Su-30MKI
+CR-089,Flying Officer Harshita Nair,Flying Officer,Jaguar
+CR-090,Squadron Leader Ishaan Verma,Squadron Leader,Mirage 2000
+CR-091,Flight Lieutenant Jyoti Sharma,Flight Lieutenant,HAL Tejas
+CR-092,Flying Officer Karan Patel,Flying Officer,Su-30MKI
+CR-093,Wing Commander Lakshmi Reddy,Wing Commander,Jaguar
+CR-094,Flying Officer Manas Kumar,Flying Officer,Mirage 2000
+CR-095,Squadron Leader Nisha Singh,Squadron Leader,HAL Tejas
+CR-096,Flight Lieutenant Omit Gupta,Flight Lieutenant,Su-30MKI
+CR-097,Flying Officer Priya Nair,Flying Officer,Jaguar
+CR-098,Wing Commander Ritika Sharma,Wing Commander,Mirage 2000
+CR-099,Flying Officer Siddharth Rao,Flying Officer,HAL Tejas
+CR-100,Squadron Leader Tanya Verma,Squadron Leader,Su-30MKI
+CR-101,Flight Lieutenant Uday Singh,Flight Lieutenant,Jaguar
+CR-102,Flying Officer Vanessa D'Silva,Flying Officer,Mirage 2000
+CR-103,Wing Commander Yashi Patel,Wing Commander,HAL Tejas
+CR-104,Flying Officer Zara Khan,Flying Officer,Su-30MKI
+CR-105,Squadron Leader Aarav Kumar,Squadron Leader,Jaguar
+CR-106,Flight Lieutenant Bhakti Sharma,Flight Lieutenant,Mirage 2000
+CR-107,Flying Officer Chintya Desai,Flying Officer,HAL Tejas
+CR-108,Wing Commander Dhruv Singh,Wing Commander,Su-30MKI
+CR-109,Flying Officer Ekta Nair,Flying Officer,Jaguar
+CR-110,Squadron Leader Falak Khan,Squadron Leader,Mirage 2000
+CR-111,Flight Lieutenant Gaurav Verma,Flight Lieutenant,HAL Tejas
+CR-112,Flying Officer Hamsini Reddy,Flying Officer,Su-30MKI
+CR-113,Wing Commander Ishan Patel,Wing Commander,Jaguar
+CR-114,Flying Officer Jiya Sharma,Flying Officer,Mirage 2000
+CR-115,Squadron Leader Keshav Kumar,Squadron Leader,HAL Tejas
+CR-116,Flight Lieutenant Lavanya Iyer,Flight Lieutenant,Su-30MKI
+CR-117,Flying Officer Mahi Dey,Flying Officer,Jaguar
+CR-118,Wing Commander Nirav Rao,Wing Commander,Mirage 2000
+CR-119,Flying Officer Oora Verma,Flying Officer,HAL Tejas
+CR-120,Squadron Leader Prajesh Singh,Squadron Leader,Su-30MKI
+CR-001,Squadron Leader Rajesh Kumar,Squadron Leader,Tejas
+CR-002,Flying Officer Priya Singh,Flying Officer,Tejas
+CR-003,Wing Commander Vikram Patel,Wing Commander,Su-30MKI
+CR-004,Flight Lieutenant Arjun Reddy,Flight Lieutenant,Su-30MKI
+CR-005,Squadron Leader Anil Sharma,Squadron Leader,Mirage 2000
+CR-006,Flying Officer Deepak Gupta,Flying Officer,Jaguar
+CR-007,Flight Lieutenant Nikhil Desai,Flight Lieutenant,Jaguar
+CR-008,Flying Officer Neha Verma,Flying Officer,Tejas
+CR-009,Wing Commander Suresh Kumar,Wing Commander,Su-30MKI
+CR-010,Squadron Leader Rohit Singh,Squadron Leader,Mirage 2000
+CR-011,Flight Lieutenant Harpreet Singh,Flight Lieutenant,Tejas
+CR-012,Flying Officer Vivek Malhotra,Flying Officer,Su-30MKI
+CR-013,Wing Commander Amit Desai,Wing Commander,Jaguar
+CR-014,Squadron Leader Sanjay Verma,Squadron Leader,Mirage 2000
+CR-015,Flying Officer Naveen Sharma,Flying Officer,Tejas
+CR-016,Flight Lieutenant Rohan Patel,Flight Lieutenant,Su-30MKI
+CR-017,Wing Commander Kiran Nair,Wing Commander,Mirage 2000
+CR-018,Flying Officer Anupam Dey,Flying Officer,Jaguar
+CR-019,Squadron Leader Manoj Kumar,Squadron Leader,Tejas
+CR-020,Flight Lieutenant Ravi Teja,Flight Lieutenant,Su-30MKI
+CR-021,Flying Officer Arjun Singh,Flying Officer,Mirage 2000
+CR-022,Wing Commander Siddharth Dutt,Wing Commander,Jaguar
+CR-023,Flying Officer Nitin Gupta,Flying Officer,Tejas
+CR-024,Flight Lieutenant Varun Mishra,Flight Lieutenant,Su-30MKI
+CR-025,Squadron Leader Shantanu Roy,Squadron Leader,Jaguar
+CR-026,Flying Officer Brijesh Kumar,Flying Officer,Mirage 2000
+CR-027,Flight Lieutenant Abhishek Saxena,Flight Lieutenant,Tejas
+CR-028,Wing Commander Manish Singh,Wing Commander,Su-30MKI
+CR-029,Flying Officer Samir Desai,Flying Officer,Jaguar
+CR-030,Squadron Leader Hari Prasad,Squadron Leader,Mirage 2000
+CR-031,Flying Officer Tushar Sharma,Flying Officer,Tejas
+CR-032,Flight Lieutenant Vikram Kumar,Flight Lieutenant,Su-30MKI
+CR-033,Wing Commander Akhil Nair,Wing Commander,Jaguar
+CR-034,Flying Officer Arun Bansal,Flying Officer,Mirage 2000
+CR-035,Squadron Leader Harsh Verma,Squadron Leader,Tejas
+CR-036,Flight Lieutenant Shankar Reddy,Flight Lieutenant,Su-30MKI
+CR-037,Flying Officer Chirag Patel,Flying Officer,Jaguar
+CR-038,Wing Commander Arvind Singh,Wing Commander,Mirage 2000
+CR-039,Flying Officer Dinesh Kumar,Flying Officer,Tejas
+CR-040,Flight Lieutenant Gagan Sharma,Flight Lieutenant,Su-30MKI
+CR-041,Squadron Leader Hector D'Silva,Squadron Leader,Jaguar
+CR-042,Flying Officer Ijay Kapoor,Flying Officer,Mirage 2000
+CR-043,Flight Lieutenant Jasper Fernandes,Flight Lieutenant,Tejas
+CR-044,Wing Commander Karim Siddiqui,Wing Commander,Su-30MKI
+CR-045,Flying Officer Laxman Iyer,Flying Officer,Jaguar
+CR-046,Squadron Leader Mohan Rao,Squadron Leader,Mirage 2000
+CR-047,Flying Officer Neelesh Yadav,Flying Officer,Tejas
+CR-048,Flight Lieutenant Omkar Desai,Flight Lieutenant,Su-30MKI
+CR-049,Wing Commander Pranav Menon,Wing Commander,Jaguar
+CR-050,Flying Officer Quentin Alves,Flying Officer,Mirage 2000
+CR-051,Squadron Leader Rajiv Singh,Squadron Leader,Tejas
+CR-052,Flight Lieutenant Sameer Kapoor,Flight Lieutenant,Su-30MKI
+CR-053,Flying Officer Tanvi Nair,Flying Officer,Jaguar
+CR-054,Wing Commander Umesh Verma,Wing Commander,Mirage 2000
+CR-055,Flying Officer Vikram Bhat,Flying Officer,Tejas
+CR-056,Squadron Leader Wazir Khan,Squadron Leader,Su-30MKI
+CR-057,Flight Lieutenant Ashok Reddy,Flight Lieutenant,Jaguar
+CR-058,Flying Officer Balaji Iyer,Flying Officer,Mirage 2000
+CR-059,Wing Commander Chetan Singh,Wing Commander,Tejas
+CR-060,Flying Officer Daksh Sharma,Flying Officer,Su-30MKI
+CR-061,Squadron Leader Eshan Desai,Squadron Leader,Jaguar
+CR-062,Flight Lieutenant Faraz Khan,Flight Lieutenant,Mirage 2000
+CR-063,Flying Officer Gauri Kapoor,Flying Officer,Tejas
+CR-064,Wing Commander Harsh Nair,Wing Commander,Su-30MKI
+CR-065,Flying Officer Indrajit Rao,Flying Officer,Jaguar
+CR-066,Squadron Leader Janak Kumar,Squadron Leader,Mirage 2000
+CR-067,Flight Lieutenant Karthik Sinha,Flight Lieutenant,Tejas
+CR-068,Flying Officer Leela Sharma,Flying Officer,Su-30MKI
+CR-069,Wing Commander Mahesh Singh,Wing Commander,Jaguar
+CR-070,Flying Officer Nila Verma,Flying Officer,Mirage 2000
+CR-071,Squadron Leader Ojas Patel,Squadron Leader,Tejas
+CR-072,Flight Lieutenant Pramod Yadav,Flight Lieutenant,Su-30MKI
+CR-073,Wing Commander Quincy Fernandes,Wing Commander,Jaguar
+CR-074,Flying Officer Rohini Dey,Flying Officer,Mirage 2000
+CR-075,Squadron Leader Saurav Kumar,Squadron Leader,Tejas
+CR-076,Flight Lieutenant Tarun Mishra,Flight Lieutenant,Su-30MKI
+CR-077,Flying Officer Uma Sharma,Flying Officer,Jaguar
+CR-078,Wing Commander Vaibhav Singh,Wing Commander,Mirage 2000
+CR-079,Flying Officer Walid Hassan,Flying Officer,Tejas
+CR-080,Squadron Leader Yaman Patel,Squadron Leader,Su-30MKI
+CR-081,Flight Lieutenant Zain Khan,Flight Lieutenant,Jaguar
+CR-082,Flying Officer Amrita Kapoor,Flying Officer,Mirage 2000
+CR-083,Wing Commander Bhavesh Kumar,Wing Commander,Tejas
+CR-084,Flying Officer Chandra Sharma,Flying Officer,Su-30MKI
+CR-085,Squadron Leader Dhananjay Singh,Squadron Leader,Jaguar
+CR-086,Flight Lieutenant Ehaan Desai,Flight Lieutenant,Mirage 2000
+CR-087,Flying Officer Farida Khan,Flying Officer,Tejas
+CR-088,Wing Commander Gautam Iyer,Wing Commander,Su-30MKI
+CR-089,Flying Officer Harshita Nair,Flying Officer,Jaguar
+CR-090,Squadron Leader Ishaan Verma,Squadron Leader,Mirage 2000
+CR-091,Flight Lieutenant Jyoti Sharma,Flight Lieutenant,Tejas
+CR-092,Flying Officer Karan Patel,Flying Officer,Su-30MKI
+CR-093,Wing Commander Lakshmi Reddy,Wing Commander,Jaguar
+CR-094,Flying Officer Manas Kumar,Flying Officer,Mirage 2000
+CR-095,Squadron Leader Nisha Singh,Squadron Leader,Tejas
+CR-096,Flight Lieutenant Omit Gupta,Flight Lieutenant,Su-30MKI
+CR-097,Flying Officer Priya Nair,Flying Officer,Jaguar
+CR-098,Wing Commander Ritika Sharma,Wing Commander,Mirage 2000
+CR-099,Flying Officer Siddharth Rao,Flying Officer,Tejas
+CR-100,Squadron Leader Tanya Verma,Squadron Leader,Su-30MKI
+CR-101,Flight Lieutenant Uday Singh,Flight Lieutenant,Jaguar
+CR-102,Flying Officer Vanessa D'Silva,Flying Officer,Mirage 2000
+CR-103,Wing Commander Yashi Patel,Wing Commander,Tejas
+CR-104,Flying Officer Zara Khan,Flying Officer,Su-30MKI
+CR-105,Squadron Leader Aarav Kumar,Squadron Leader,Jaguar
+CR-106,Flight Lieutenant Bhakti Sharma,Flight Lieutenant,Mirage 2000
+CR-107,Flying Officer Chintya Desai,Flying Officer,Tejas
+CR-108,Wing Commander Dhruv Singh,Wing Commander,Su-30MKI
+CR-109,Flying Officer Ekta Nair,Flying Officer,Jaguar
+CR-110,Squadron Leader Falak Khan,Squadron Leader,Mirage 2000
+CR-111,Flight Lieutenant Gaurav Verma,Flight Lieutenant,Tejas
+CR-112,Flying Officer Hamsini Reddy,Flying Officer,Su-30MKI
+CR-113,Wing Commander Ishan Patel,Wing Commander,Jaguar
+CR-114,Flying Officer Jiya Sharma,Flying Officer,Mirage 2000
+CR-115,Squadron Leader Keshav Kumar,Squadron Leader,Tejas
+CR-116,Flight Lieutenant Lavanya Iyer,Flight Lieutenant,Su-30MKI
+CR-117,Flying Officer Mahi Dey,Flying Officer,Jaguar
+CR-118,Wing Commander Nirav Rao,Wing Commander,Mirage 2000
+CR-119,Flying Officer Oora Verma,Flying Officer,Tejas
+CR-120,Squadron Leader Prajesh Singh,Squadron Leader,Su-30MKI

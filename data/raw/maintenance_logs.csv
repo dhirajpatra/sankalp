@@ -1,0 +1,11 @@
+log_id,aircraft_id,maintenance_date,maintenance_type,technician_name,next_due_date
+ML-001,AC-001,2024-08-15,Scheduled,Sgt. Ashok Kumar,2024-11-15
+ML-002,AC-002,2024-07-22,Engine Overhaul,Wg Cdr Mehta,2025-01-22
+ML-003,AC-003,2024-09-10,Avionics Check,Flt Lt Nair,2024-12-10
+ML-004,AC-004,2024-06-30,Scheduled,Sgt. Sharma,2024-09-30
+ML-005,AC-005,2024-10-05,Major Servicing,Wg Cdr Singh,2025-04-05
+ML-006,AC-006,2024-09-18,Scheduled,Sgt. Verma,2024-12-18
+ML-007,AC-007,2024-07-14,Engine Overhaul,Flt Lt Desai,2025-01-14
+ML-008,AC-008,2024-08-28,Scheduled,Sgt. Patil,2024-11-28
+ML-009,AC-001,2024-11-20,Unsigned (Emergency Repair),Sgt. Ashok Kumar,2024-12-05
+ML-010,AC-005,2025-01-10,Routine Inspection,Flt Lt Nair,2025-04-10

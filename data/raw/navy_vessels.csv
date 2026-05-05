@@ -1,0 +1,21 @@
+vessel_id,vessel_type,flotilla,last_refit_date,sea_hours,displacement_tons,location
+IN_001,INS Vikrant (Carrier),Western Fleet,2025-02-10,1200,45000,Western Fleet
+IN_002,INS Kolkata (Destroyer),Eastern Fleet,2025-03-05,800,7500,Eastern Fleet
+IN_003,INS Chennai (Destroyer),Western Fleet,2025-04-01,950,7500,Western Fleet
+IN_004,INS Shivalik (Frigate),Eastern Fleet,2025-01-20,1100,6200,Eastern Fleet
+IN_005,Sindhughosh-class Sub,Submarine Command,2025-05-10,600,3000,Submarine Command
+IN_006,Kalvari-class Sub,Submarine Command,2025-03-18,750,1750,Submarine Command
+IN_007,INS Sukanya (OPV),Southern Naval Command,2025-02-28,400,1890,Southern Naval Command
+IN_008,HAL Sea King,Naval Air Arm,2025-06-01,320,NA,Naval Air Arm
+IN_009,P-8I Poseidon,Naval Air Arm,2025-04-15,280,NA,Naval Air Arm
+IN_010,BrahMos Armed Vessel,Western Fleet,2025-01-05,1500,4000,Western Fleet
+IN_011,INS Kolkata (Destroyer),Western Fleet,2025-05-20,600,7500,Western Fleet
+IN_012,Kalvari-class Sub,Submarine Command,2024-12-10,1800,1750,Submarine Command
+IN_013,INS Shivalik (Frigate),Far Eastern Naval Command,2025-03-25,900,6200,Far Eastern Naval Command
+IN_014,HAL Sea King,Naval Air Arm,2025-02-14,450,NA,Naval Air Arm
+IN_015,P-8I Poseidon,Naval Air Arm,2025-06-08,180,NA,Naval Air Arm
+IN_016,INS Sukanya (OPV),Andaman & Nicobar,2025-04-30,350,1890,Andaman & Nicobar
+IN_017,BrahMos Armed Vessel,Eastern Fleet,2025-01-18,1300,4000,Eastern Fleet
+IN_018,Sindhughosh-class Sub,Submarine Command,2025-05-05,850,3000,Submarine Command
+IN_019,INS Vikrant (Carrier),Western Fleet,2024-11-25,2000,45000,Western Fleet
+IN_020,INS Chennai (Destroyer),Southern Naval Command,2025-03-12,700,7500,Southern Naval Command

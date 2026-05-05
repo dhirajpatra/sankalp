@@ -1,0 +1,515 @@
+{
+    "__global_settings__": {
+        "operational_threshold": 5
+    },
+    "protect northern border from any type of infiltration": {
+        "description": "IAF alone can handle northern border infiltration with air superiority. If Army assets (>=10) are also available, the response is classified SUPERIOR with ground assault capability.",
+        "iaf_min_operational": 5,
+        "army_min_operational": 0,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": true,
+        "army_enhances": true,
+        "army_enhancement_threshold": 10,
+        "logic_mode": "iaf_primary_army_superior"
+    },
+    "attack terrorist infiltration from our southern sea borders": {
+        "description": "Requires fleet of Navy vessels for blockade and IAF recon support.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 0,
+        "navy_min_operational": 8,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "attack kashmir border based terrorist camps by air force and army joint force": {
+        "description": "Find out if the Air Force has required aircraft to attack and destroy the Kashmir border based terrorist camps. Also check if we have the required Army personnel to joint attack with Air Force in ground to destroy terrorist camps in Kashmir border.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 10,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": true,
+        "army_enhances": true,
+        "army_enhancement_threshold": 10,
+        "logic_mode": "iaf_primary_army_superior"
+    },
+    "conduct surgical strike on enemy artillery positions across line of control": {
+        "description": "Precision IAF strike on cross-LoC enemy artillery positions threatening forward Army posts. Requires IAF precision-strike capable aircraft and Army forward observers to designate targets.",
+        "iaf_min_operational": 3,
+        "army_min_operational": 5,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "neutralise hostile submarine threat in arabian sea": {
+        "description": "Anti-submarine warfare operation using Navy vessels with P-8I Poseidon maritime patrol support from Naval Air Arm. IAF provides optional combat air patrol umbrella over operating zone.",
+        "iaf_min_operational": 1,
+        "army_min_operational": 0,
+        "navy_min_operational": 6,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "enforce naval blockade on hostile coastal supply route": {
+        "description": "Deploy Navy surface fleet to enforce maritime blockade of enemy resupply routes. IAF provides air cover and ISR. Army coastal defence units secure our own littoral.",
+        "iaf_min_operational": 3,
+        "army_min_operational": 4,
+        "navy_min_operational": 10,
+        "iaf_sufficient_alone": false,
+        "army_enhances": true,
+        "army_enhancement_threshold": 8,
+        "logic_mode": "standard"
+    },
+    "air defence scramble to intercept unidentified aircraft violating airspace": {
+        "description": "QRF scramble of combat-ready IAF interceptors to challenge and if necessary neutralise unidentified aircraft violating Indian airspace. Response time critical — IAF only operation.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 0,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": true,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "iaf_primary_army_superior"
+    },
+    "evacuate indian nationals from conflict zone overseas": {
+        "description": "Humanitarian evacuation operation using IAF transport aircraft with Army protection detail. Navy vessels to provide offshore staging platform and emergency medical support.",
+        "iaf_min_operational": 4,
+        "army_min_operational": 6,
+        "navy_min_operational": 3,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "counter drone swarm attack on forward operating base": {
+        "description": "Detect and neutralise hostile drone swarm targeting Indian forward base. IAF deploys EW aircraft and interceptor drones. Army deploys man-portable air defence systems (MANPADS).",
+        "iaf_min_operational": 2,
+        "army_min_operational": 8,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": false,
+        "army_enhances": true,
+        "army_enhancement_threshold": 8,
+        "logic_mode": "standard"
+    },
+    "defend andaman and nicobar islands from amphibious assault": {
+        "description": "Joint tri-service defence of A&N islands against hostile amphibious landing. Navy holds sea approaches, IAF dominates airspace, Army defends beaches and interior.",
+        "iaf_min_operational": 4,
+        "army_min_operational": 10,
+        "navy_min_operational": 8,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "strike enemy radar and communication nodes before main offensive": {
+        "description": "SEAD/DEAD (Suppression/Destruction of Enemy Air Defences) strike package. IAF precision aircraft destroy enemy radar networks and communications hubs to degrade their command and control.",
+        "iaf_min_operational": 5,
+        "army_min_operational": 0,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": true,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "iaf_primary_army_superior"
+    },
+    "provide close air support to army troops in contact": {
+        "description": "CAS (Close Air Support) mission. IAF strike aircraft support Army troops engaged with enemy forces. Requires forward air controllers embedded with Army units and minimum operational aircraft.",
+        "iaf_min_operational": 3,
+        "army_min_operational": 5,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": false,
+        "army_enhances": true,
+        "army_enhancement_threshold": 5,
+        "logic_mode": "standard"
+    },
+    "conduct cyber and electronic warfare against hostile command networks": {
+        "description": "Joint electronic warfare and cyber operation targeting hostile C4ISR networks. IAF EW aircraft provide signal jamming. Army cyber units conduct offensive cyber operations.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 3,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "rescue hostages from maritime piracy in indian ocean": {
+        "description": "Maritime counter-terrorism rescue operation. Navy vessels cordon the pirated vessel. Army special forces (MARCOS/Para SF) conduct assault. IAF provides ISR and medevac standby.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 4,
+        "navy_min_operational": 5,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "aerial reconnaissance of enemy troop buildup along eastern border": {
+        "description": "ISR mission over Arunachal Pradesh and Sikkim sectors using IAF recce aircraft and UAVs to detect and characterise enemy troop and armour concentrations.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 0,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": true,
+        "army_enhances": true,
+        "army_enhancement_threshold": 5,
+        "logic_mode": "iaf_primary_army_superior"
+    },
+    "respond to chemical weapon attack on forward troops": {
+        "description": "CBRN response: Army CBRN units decontaminate and treat affected soldiers. IAF medevac helicopters airlift casualties to field hospitals. Navy hospital ship provides specialist treatment.",
+        "iaf_min_operational": 3,
+        "army_min_operational": 8,
+        "navy_min_operational": 2,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "destroy enemy missile launch sites before nuclear escalation": {
+        "description": "Time-critical strike on enemy tactical missile launch infrastructure. IAF deploys maximum strike package with standoff weapons. Army provides BrahMos ground launch supplement.",
+        "iaf_min_operational": 8,
+        "army_min_operational": 5,
+        "navy_min_operational": 3,
+        "iaf_sufficient_alone": false,
+        "army_enhances": true,
+        "army_enhancement_threshold": 5,
+        "logic_mode": "standard"
+    },
+    "conduct high altitude warfare in ladakh sector against armour intrusion": {
+        "description": "High-altitude armour engagement using Army T-90 Bhishma and Arjun tanks supported by IAF ground-attack aircraft. Terrain limits Navy involvement.",
+        "iaf_min_operational": 3,
+        "army_min_operational": 12,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": false,
+        "army_enhances": true,
+        "army_enhancement_threshold": 12,
+        "logic_mode": "standard"
+    },
+    "protect oil platforms in mumbai high from terrorist attack": {
+        "description": "Force protection of offshore oil infrastructure. Navy corvettes and OPVs patrol the exclusion zone. IAF helicopter gunships provide rapid response. Army divers secure underwater perimeter.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 3,
+        "navy_min_operational": 6,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "respond to enemy ballistic missile launch targeting delhi": {
+        "description": "Ballistic missile defence response. IAF activates S-400 and Akash batteries. Army MANPADS and short-range systems supplement layered defence. Intercept window is very short.",
+        "iaf_min_operational": 6,
+        "army_min_operational": 10,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": true,
+        "army_enhances": true,
+        "army_enhancement_threshold": 10,
+        "logic_mode": "iaf_primary_army_superior"
+    },
+    "insert special forces deep behind enemy lines for sabotage": {
+        "description": "Special Forces insertion using IAF special operations aircraft (C-130J). Army Para SF or MARCOS teams execute sabotage of enemy logistics nodes and HVTs.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 3,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "counter amphibious landing attempt on gujarat coast": {
+        "description": "Defeat hostile amphibious force approaching Gujarat coastline. Navy engages fleet at sea, IAF strikes landing craft and escorts, Army beach defence units hold the shore.",
+        "iaf_min_operational": 5,
+        "army_min_operational": 8,
+        "navy_min_operational": 7,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "airlift emergency supplies to forward troops cut off by enemy action": {
+        "description": "Humanitarian logistics mission using IAF transport fleet (C-17, Il-76, An-32) to resupply besieged Army units via airdrop or airland where airstrips survive.",
+        "iaf_min_operational": 4,
+        "army_min_operational": 0,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": true,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "iaf_primary_army_superior"
+    },
+    "establish air superiority over enemy capital before ground offensive": {
+        "description": "Major air campaign to achieve air superiority. IAF deploys maximum sorties of Su-30MKI and Rafale to destroy enemy air force, air defences, and C2 nodes. Enables Army advance.",
+        "iaf_min_operational": 10,
+        "army_min_operational": 0,
+        "navy_min_operational": 2,
+        "iaf_sufficient_alone": true,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "iaf_primary_army_superior"
+    },
+    "sink enemy aircraft carrier threatening bay of bengal": {
+        "description": "Anti-carrier operation using Navy submarines and destroyers with BrahMos missiles. IAF provides maritime strike aircraft for coordinated multi-axis attack.",
+        "iaf_min_operational": 4,
+        "army_min_operational": 0,
+        "navy_min_operational": 8,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "protect indian space assets from anti satellite attack": {
+        "description": "Space domain defence. IAF space situational awareness and ground-based directed energy assets attempt intercept or spoofing. Army cyber units defend ground control stations.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 3,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": true,
+        "army_enhances": true,
+        "army_enhancement_threshold": 3,
+        "logic_mode": "iaf_primary_army_superior"
+    },
+    "flood relief and disaster response in brahmaputra valley": {
+        "description": "Humanitarian assistance and disaster relief. IAF helicopters and transport aircraft conduct rescue and supply. Army engineer corps opens roads and bridges. Navy deploys hospital ship.",
+        "iaf_min_operational": 5,
+        "army_min_operational": 8,
+        "navy_min_operational": 1,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "protect lakshadweep islands from hostile naval encroachment": {
+        "description": "Force protection of remote island territories. Navy OPVs maintain permanent patrol. IAF maritime patrol aircraft provide area surveillance. Army garrison holds the island.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 2,
+        "navy_min_operational": 5,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "counter insurgency sweep in northeast india jungle terrain": {
+        "description": "COIN operation in dense jungle terrain. Army infantry units conduct cordon and search. IAF helicopters provide mobility, CAS, and medevac. Intelligence-led targeting required.",
+        "iaf_min_operational": 3,
+        "army_min_operational": 15,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": false,
+        "army_enhances": true,
+        "army_enhancement_threshold": 15,
+        "logic_mode": "standard"
+    },
+    "destroy enemy logistics depots and fuel dumps via standoff strike": {
+        "description": "Strategic interdiction of enemy supply chain. IAF deploys standoff precision munitions (BrahMos-A, SCALP-EG) against fuel, ammunition, and food depots degrading enemy combat power.",
+        "iaf_min_operational": 4,
+        "army_min_operational": 0,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": true,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "iaf_primary_army_superior"
+    },
+    "repel coordinated multi-front ground attack on punjab sector": {
+        "description": "Defensive battle on Punjab plains. Army armoured and mechanised corps hold and counterattack. IAF provides continuous CAS. RiverBrahmos and artillery preparation precedes armour engagement.",
+        "iaf_min_operational": 6,
+        "army_min_operational": 20,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": false,
+        "army_enhances": true,
+        "army_enhancement_threshold": 20,
+        "logic_mode": "standard"
+    },
+    "hostage rescue from hijacked ship in gulf of aden": {
+        "description": "Maritime hostage rescue beyond Indian Ocean. Navy deploys destroyer and MARCOS team. IAF provides C-130J for personnel insertion and extraction. Diplomatic coordination with regional navies.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 3,
+        "navy_min_operational": 4,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "intercept and escort hostile uav to safe landing zone": {
+        "description": "Non-lethal interception of hostile UAV using IAF interceptors with escort capability. Preferred over shoot-down to preserve intelligence value of the drone.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 0,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": true,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "iaf_primary_army_superior"
+    },
+    "establish air bridge to isolated siachen glacier post": {
+        "description": "High-altitude logistics using IAF ALH Dhruv and Cheetah helicopters to resupply Siachen posts. Army coordinates ground reception. Medical evacuation capability mandatory.",
+        "iaf_min_operational": 4,
+        "army_min_operational": 3,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "neutralise hostile cyber attack on national power grid": {
+        "description": "National critical infrastructure protection. Army cyber command and IAF information warfare units collaborate to isolate, attribute, and neutralise the cyber intrusion. Physical guard detail deployed.",
+        "iaf_min_operational": 1,
+        "army_min_operational": 5,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": false,
+        "army_enhances": true,
+        "army_enhancement_threshold": 5,
+        "logic_mode": "standard"
+    },
+    "capture and hold strategic mountain pass before winter": {
+        "description": "Time-sensitive offensive to seize key mountain pass before snowfall closes it. Army mountain infantry with helicopter assault supported by IAF CAS. Pass must be held before enemy can reinforce.",
+        "iaf_min_operational": 3,
+        "army_min_operational": 12,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": false,
+        "army_enhances": true,
+        "army_enhancement_threshold": 12,
+        "logic_mode": "standard"
+    },
+    "maritime patrol and domain awareness in exclusive economic zone": {
+        "description": "Persistent maritime domain awareness over India's EEZ. Navy OPVs and P-8I aircraft conduct regular patrol patterns to detect illegal fishing, smuggling, and hostile ISR activity.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 0,
+        "navy_min_operational": 6,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "bridge gap after enemy destroys crossing over major river": {
+        "description": "Combat engineering bridging operation. Army engineer corps deploys Class 70 bridging equipment to restore river crossing capability under possible enemy fire. IAF provides air cover.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 8,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": false,
+        "army_enhances": true,
+        "army_enhancement_threshold": 8,
+        "logic_mode": "standard"
+    },
+    "detect and track enemy ballistic missile submarines": {
+        "description": "Strategic ASW mission to locate and shadow enemy ballistic missile submarines. Navy SSNs and P-8I aircraft conduct coordinated barrier search. Maintained as persistent deterrence patrol.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 0,
+        "navy_min_operational": 7,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "respond to biological weapon release in populated city": {
+        "description": "CBRN response to biological attack. Army CBRN units establish decontamination corridors. IAF medevac and logistics. Navy hospital ship receives overflow casualties. Multi-agency coordination essential.",
+        "iaf_min_operational": 4,
+        "army_min_operational": 10,
+        "navy_min_operational": 2,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "offensive mine-laying operation in enemy harbour approaches": {
+        "description": "Naval mine warfare to deny enemy port egress. Navy submarines lay anti-ship mines at chokepoints. IAF provides electronic jamming cover for approach run.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 0,
+        "navy_min_operational": 4,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "deter hostile nuclear submarine from threatening indian coast": {
+        "description": "Strategic deterrence patrol against nuclear-armed submarine. Navy deploys SSN and MPA to track and deter. IAF strategic bombers on alert to signal second-strike capability.",
+        "iaf_min_operational": 3,
+        "army_min_operational": 0,
+        "navy_min_operational": 5,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "humanitarian aid delivery after earthquake in neighbouring country": {
+        "description": "Disaster diplomacy mission. IAF transport fleet delivers relief supplies, search-and-rescue teams, and field hospital. Army medical corps provides specialist trauma care. Navy hospital ship positioned offshore.",
+        "iaf_min_operational": 5,
+        "army_min_operational": 6,
+        "navy_min_operational": 2,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "protect indian troops participating in un peacekeeping operations": {
+        "description": "Force protection for Indian UNPKF contingent in conflict zone. IAF quick reaction force on standby. Army embedded QRF platoon. Medevac capability within 30 minutes.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 5,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "destroy enemy long range artillery harassing border towns": {
+        "description": "Counter-battery fire and precision strike mission to destroy enemy 155mm and rocket artillery shelling Indian border towns. Army SWATHI radar locates batteries, IAF strikes, Army arty suppresses.",
+        "iaf_min_operational": 3,
+        "army_min_operational": 8,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": true,
+        "army_enhances": true,
+        "army_enhancement_threshold": 8,
+        "logic_mode": "iaf_primary_army_superior"
+    },
+    "secure sea lines of communication through malacca strait": {
+        "description": "Freedom of navigation and escort mission through Malacca Strait. Navy destroyers and frigates escort Indian merchant fleet. P-8I provides persistent anti-submarine and surface search coverage.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 0,
+        "navy_min_operational": 6,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "joint training exercise with friendly nation naval forces in indian ocean": {
+        "description": "Combined exercise MALABAR or similar. Navy provides primary surface and subsurface forces. IAF provides maritime patrol aircraft. Army observers embedded for joint doctrine development.",
+        "iaf_min_operational": 2,
+        "army_min_operational": 0,
+        "navy_min_operational": 5,
+        "iaf_sufficient_alone": false,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "standard"
+    },
+    "deter border skirmish from escalating to full scale war": {
+        "description": "Calibrated escalation control. IAF demonstrates capability through visible deployments. Army forward positions reinforced to credible defence posture. Navy repositions to show readiness without offensive action.",
+        "iaf_min_operational": 5,
+        "army_min_operational": 10,
+        "navy_min_operational": 4,
+        "iaf_sufficient_alone": false,
+        "army_enhances": true,
+        "army_enhancement_threshold": 10,
+        "logic_mode": "standard"
+    },
+    "night attack on enemy armoured column using attack helicopters": {
+        "description": "Helicopter-led night anti-armour strike. IAF ALH Dhruv-WSI and Army Aviation HAL Rudra engage enemy tank columns using Helina ATGM under thermal sight and NOG conditions.",
+        "iaf_min_operational": 3,
+        "army_min_operational": 6,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": false,
+        "army_enhances": true,
+        "army_enhancement_threshold": 6,
+        "logic_mode": "standard"
+    },
+    "rescue downed pilot from behind enemy lines": {
+        "description": "Combat search and rescue (CSAR). IAF CSAR helicopters (Mi-17V5) extract downed aircrew. Fighter escort provides suppression of enemy air defences during ingress and egress. MARCOS/Para SF on standby.",
+        "iaf_min_operational": 4,
+        "army_min_operational": 2,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": true,
+        "army_enhances": false,
+        "army_enhancement_threshold": 0,
+        "logic_mode": "iaf_primary_army_superior"
+    },
+    "enforce no-fly zone over contested territory": {
+        "description": "Sustained air policing over a defined zone. IAF maintains 24/7 CAP with interceptors. AWACS provides battle management. Army SHORAD batteries provide low-level gap coverage.",
+        "iaf_min_operational": 6,
+        "army_min_operational": 5,
+        "navy_min_operational": 0,
+        "iaf_sufficient_alone": false,
+        "army_enhances": true,
+        "army_enhancement_threshold": 5,
+        "logic_mode": "standard"
+    }
+}
