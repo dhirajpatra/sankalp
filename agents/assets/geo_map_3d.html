@@ -1,759 +1,689 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SANKALP – 3D Defence Globe</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SANKALP — Tactical Globe</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#040c18;
+  font-family:'Courier New',monospace;
+  overflow:hidden;
+  width:100%; height:100vh;
+  color:#a8d0f0;
+}
+#wrap {
+  position:relative; width:100%; height:100vh;
+  background:radial-gradient(ellipse at 50% 40%,#071428 0%,#020810 70%);
+}
+canvas { display:block; width:100%!important; height:100%!important; }
 
-    body {
-      background: #05080f;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      overflow: hidden;
-      width: 100%;
-      height: 100%;
-    }
+/* ── TOP BAR ─────────────────────────────────────────────── */
+#topbar {
+  position:absolute; top:0; left:0; right:0; height:40px;
+  background:rgba(4,12,24,0.92);
+  border-bottom:1px solid rgba(60,130,200,0.2);
+  display:flex; align-items:center;
+  z-index:300; backdrop-filter:blur(8px);
+}
+#topbar .logo {
+  padding:0 16px; border-right:1px solid rgba(60,130,200,0.18);
+  font-size:12px; font-weight:700; letter-spacing:3px; color:#4FC3F7;
+  display:flex; align-items:center; gap:8px; white-space:nowrap;
+}
+#topbar .logo small { color:#3a5570; font-weight:400; font-size:9px; letter-spacing:1px; }
+.tb-tabs { display:flex; height:100%; }
+.tb-tab {
+  height:100%; padding:0 14px;
+  border:none; border-right:1px solid rgba(60,130,200,0.1);
+  background:transparent; color:#3a5070;
+  font-family:'Courier New',monospace; font-size:10px; letter-spacing:1px;
+  cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:5px;
+}
+.tb-tab:hover { background:rgba(79,195,247,0.06); color:#7dd3fc; }
+.tb-tab.active { background:rgba(79,195,247,0.1); color:#4FC3F7; border-bottom:2px solid #4FC3F7; }
+#topbar .right-status {
+  margin-left:auto; padding:0 14px;
+  font-size:9px; color:#2a4060; letter-spacing:1px;
+  display:flex; align-items:center; gap:14px;
+}
+.pulse { width:6px; height:6px; border-radius:50%; background:#00e676; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
 
-    #canvas-wrap {
-      position: relative;
-      width: 100%;
-      height: 660px;
-      background: radial-gradient(ellipse at 50% 40%, #0a1628 0%, #05080f 70%);
-    }
+/* ── LEFT SIDEBAR ────────────────────────────────────────── */
+#sidebar {
+  position:absolute; top:40px; left:0; bottom:24px;
+  width:180px;
+  background:rgba(4,10,22,0.9);
+  border-right:1px solid rgba(60,130,200,0.15);
+  z-index:200; display:flex; flex-direction:column;
+  backdrop-filter:blur(6px);
+}
+.sb-section { border-bottom:1px solid rgba(60,130,200,0.1); padding:8px 10px; }
+.sb-label { font-size:8px; letter-spacing:2px; color:#1e3050; text-transform:uppercase; margin-bottom:6px; }
+.sb-btn {
+  display:flex; width:100%; padding:5px 7px; margin-bottom:3px;
+  background:transparent; border:1px solid rgba(60,130,200,0.18);
+  border-radius:3px; color:#3a5070;
+  font-family:'Courier New',monospace; font-size:10px;
+  cursor:pointer; transition:all .15s; align-items:center; gap:6px;
+  border-left:3px solid transparent;
+}
+.sb-btn:hover { border-color:rgba(79,195,247,0.3); color:#7dd3fc; background:rgba(79,195,247,0.04); }
+.sb-btn.active { border-left-color:#4FC3F7; color:#4FC3F7; background:rgba(79,195,247,0.07); }
+.dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
 
-    canvas {
-      display: block;
-      width: 100% !important;
-      height: 100% !important;
-    }
+/* track list */
+#track-list { flex:1; overflow-y:auto; padding:6px; }
+#track-list::-webkit-scrollbar { width:2px; }
+#track-list::-webkit-scrollbar-thumb { background:rgba(79,195,247,0.2); border-radius:1px; }
+.trk {
+  padding:6px 7px; margin-bottom:3px;
+  background:rgba(10,22,44,0.7);
+  border:1px solid rgba(60,130,200,0.12);
+  border-left:3px solid transparent;
+  border-radius:3px; cursor:pointer; transition:all .15s;
+}
+.trk:hover { border-color:rgba(79,195,247,0.25); background:rgba(79,195,247,0.04); }
+.trk.sel { border-left-color:#4FC3F7; background:rgba(79,195,247,0.07); }
+.trk-id { font-size:8px; color:#1e3050; letter-spacing:1px; }
+.trk-lbl { font-size:10px; color:#6aaccc; margin:1px 0; }
+.trk-cls { font-size:9px; letter-spacing:1px; }
 
-    /* ── Tooltip ──────────────────────────────────────────────────────────── */
-    #tooltip {
-      position: absolute;
-      display: none;
-      background: rgba(8, 16, 32, 0.92);
-      border: 1px solid rgba(100, 180, 255, 0.3);
-      border-radius: 8px;
-      padding: 10px 14px;
-      color: #e8f4ff;
-      font-size: 12px;
-      line-height: 1.7;
-      pointer-events: none;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(8px);
-      max-width: 220px;
-      z-index: 100;
-    }
+/* ── THUMBNAIL PANEL ─────────────────────────────────────── */
+.thumb {
+  position:absolute; display:none; width:220px;
+  background:rgba(4,10,24,0.96);
+  border-radius:6px; padding:10px 12px;
+  font-family:'Courier New',monospace; font-size:10px; color:#c8e0f4;
+  pointer-events:none; z-index:500;
+  box-shadow:0 6px 30px rgba(0,0,0,0.85);
+  backdrop-filter:blur(10px);
+}
+.thumb-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
+.thumb-cls { font-weight:700; font-size:10px; letter-spacing:2px; }
+.thumb-id { border-radius:3px; padding:1px 5px; font-size:8px; }
+.thumb-label { font-size:12px; color:#7dd3fc; font-weight:700; margin-bottom:2px; }
+.thumb-type { font-size:9px; color:#2a4060; margin-bottom:7px; }
+.thumb-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px 8px; font-size:9px; margin-bottom:7px; }
+.thumb-key { color:#1e3050; }
+.thumb-val { color:#8ab8cc; }
+.bar-outer { background:rgba(255,255,255,0.07); border-radius:2px; height:4px; margin-bottom:3px; }
+.bar-inner { height:4px; border-radius:2px; transition:width .4s; }
+.thumb-threat { border-top:1px solid rgba(255,75,75,0.2); margin-top:6px; padding-top:5px; font-size:9px; color:#ff4b4b; letter-spacing:1px; }
 
-    #tooltip .tt-id {
-      font-weight: 700;
-      font-size: 13px;
-      color: #7dd3fc;
-    }
+/* ── BOTTOM STATUS ───────────────────────────────────────── */
+#statusbar {
+  position:absolute; bottom:0; left:180px; right:0; height:24px;
+  background:rgba(4,10,22,0.92);
+  border-top:1px solid rgba(60,130,200,0.15);
+  display:flex; align-items:center; gap:16px; padding:0 12px;
+  font-size:9px; color:#1e3050; letter-spacing:.5px; z-index:200;
+}
+#statusbar .sv { color:#2a4060; }
 
-    #tooltip .tt-stat {
-      font-weight: 600;
-    }
+/* ── HUD READINESS FILTER (top-right) ───────────────────── */
+#hud-right {
+  position:absolute; top:50px; right:10px;
+  display:flex; gap:5px; z-index:200;
+}
+.hud-pill {
+  padding:4px 10px; border-radius:12px;
+  border:1px solid rgba(60,130,200,0.2);
+  background:rgba(4,10,22,0.8); color:#2a4060;
+  font-family:'Courier New',monospace; font-size:9px;
+  cursor:pointer; transition:all .15s;
+  display:flex; align-items:center; gap:4px;
+}
+.hud-pill:hover { border-color:rgba(79,195,247,0.3); color:#7dd3fc; }
+.hud-pill.active { background:rgba(79,195,247,0.1); border-color:#4FC3F7; color:#4FC3F7; }
+.hud-dot { width:6px; height:6px; border-radius:50%; }
 
-    #tooltip .op {
-      color: #00e676;
-    }
+/* ── LOADER ──────────────────────────────────────────────── */
+#loader {
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px;
+  background:#040c18; z-index:999;
+}
+#loader .ring {
+  width:36px; height:36px;
+  border:2px solid #0a1628; border-top-color:#4FC3F7;
+  border-radius:50%; animation:spin .8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+#loader p { color:#2a4060; font-size:10px; letter-spacing:2px; }
 
-    #tooltip .watch {
-      color: #ff9800;
-    }
-
-    #tooltip .crit {
-      color: #ff4b4b;
-    }
-
-    /* ── HUD / controls ───────────────────────────────────────────────────── */
-    #hud {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      z-index: 10;
-    }
-
-    .hud-btn {
-      background: rgba(20, 40, 80, 0.75);
-      border: 1px solid rgba(100, 160, 255, 0.25);
-      border-radius: 6px;
-      color: #a8d8ff;
-      padding: 5px 11px;
-      font-size: 11px;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-      backdrop-filter: blur(6px);
-    }
-
-    .hud-btn:hover,
-    .hud-btn.active {
-      background: rgba(40, 80, 160, 0.85);
-      border-color: rgba(100, 180, 255, 0.6);
-      color: #ffffff;
-    }
-
-    #filter-bar {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      display: flex;
-      gap: 6px;
-      z-index: 10;
-    }
-
-    /* ── Cache status badge ───────────────────────────────────────────────── */
-    #cache-badge {
-      position: absolute;
-      bottom: 10px;
-      right: 12px;
-      font-size: 10px;
-      color: #4a6080;
-      letter-spacing: 0.4px;
-      z-index: 10;
-    }
-
-    #cache-badge span {
-      color: #48bb78;
-    }
-
-    /* ── Loading overlay ──────────────────────────────────────────────────── */
-    #loader {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 12px;
-      background: #05080f;
-      z-index: 200;
-    }
-
-    #loader .ring {
-      width: 44px;
-      height: 44px;
-      border: 3px solid #0a1628;
-      border-top-color: #4FC3F7;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    #loader p {
-      color: #4a6080;
-      font-size: 12px;
-      letter-spacing: 1px;
-    }
-  </style>
+/* threat arc pulse */
+@keyframes threatPulse { 0%,100%{opacity:.5} 50%{opacity:.1} }
+</style>
 </head>
-
 <body>
+<div id="wrap">
+  <div id="loader"><div class="ring"></div><p>INITIALISING TACTICAL LAYER…</p></div>
 
-  <div id="canvas-wrap">
-    <div id="loader">
-      <div class="ring"></div>
-      <p>LOADING GLOBE…</p>
+  <!-- Top bar -->
+  <div id="topbar">
+    <div class="logo">🛡️ SANKALP <small>TACTICAL COP</small></div>
+    <div class="tb-tabs">
+      <button class="tb-tab active" onclick="setTab('all',this)">ALL ASSETS</button>
+      <button class="tb-tab" onclick="setTab('hostile',this)">⚠ THREATS</button>
+      <button class="tb-tab" onclick="setTab('air',this)">AIR</button>
+      <button class="tb-tab" onclick="setTab('surface',this)">SURFACE</button>
     </div>
-
-    <canvas id="globe-canvas"></canvas>
-
-    <!-- HUD filter buttons -->
-    <div id="hud">
-      <button class="hud-btn active" data-branch="All" onclick="setBranch(this)">All Branches</button>
-      <button class="hud-btn" data-branch="IAF" onclick="setBranch(this)">✈️ IAF</button>
-      <button class="hud-btn" data-branch="Army" onclick="setBranch(this)">🪖 Army</button>
-      <button class="hud-btn" data-branch="Navy" onclick="setBranch(this)">⚓ Navy</button>
+    <div class="right-status">
+      <div class="pulse"></div>
+      <span id="trk-count">— TRACKS</span>
+      <span id="clock-display">—</span>
     </div>
-
-    <div id="filter-bar">
-      <button class="hud-btn active" data-status="All" onclick="setStatus(this)">All</button>
-      <button class="hud-btn" data-status="operational" onclick="setStatus(this)">🟢 Op</button>
-      <button class="hud-btn" data-status="watch" onclick="setStatus(this)">🟡 Watch</button>
-      <button class="hud-btn" data-status="critical" onclick="setStatus(this)">🔴 Crit</button>
-    </div>
-
-    <div id="tooltip"></div>
-    <div id="cache-badge">IndexedDB: <span id="cache-status">—</span></div>
   </div>
 
-  <!-- Three.js r160 from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+  <!-- Left sidebar -->
+  <div id="sidebar">
+    <div class="sb-section">
+      <div class="sb-label">Branch</div>
+      <button class="sb-btn active" onclick="filterBranch('ALL',this)"><span class="dot" style="background:#4a6080"></span>All Branches</button>
+      <button class="sb-btn" onclick="filterBranch('IAF',this)"><span class="dot" style="background:#4FC3F7"></span>IAF</button>
+      <button class="sb-btn" onclick="filterBranch('Army',this)"><span class="dot" style="background:#81C784"></span>Army</button>
+      <button class="sb-btn" onclick="filterBranch('Navy',this)"><span class="dot" style="background:#4DB6AC"></span>Navy</button>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Readiness</div>
+      <button class="sb-btn active" onclick="filterStatus('ALL',this)"><span class="dot" style="background:#4a6080"></span>All</button>
+      <button class="sb-btn" onclick="filterStatus('op',this)"><span class="dot" style="background:#00e676"></span>Operational</button>
+      <button class="sb-btn" onclick="filterStatus('watch',this)"><span class="dot" style="background:#ff9800"></span>Watch</button>
+      <button class="sb-btn" onclick="filterStatus('crit',this)"><span class="dot" style="background:#ff4b4b"></span>Critical</button>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Tracks (<span id="trk-list-count">0</span>)</div>
+    </div>
+    <div id="track-list"></div>
+  </div>
 
-  <script>
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // 1. PYTHON-INJECTED DATA
-    // ═══════════════════════════════════════════════════════════════════════════════
-    const PYTHON_ASSETS = __ASSETS_JSON__;
-    const THRESHOLD = __THRESHOLD__;
-    const FORCE_REFRESH = __FORCE_REFRESH__;
+  <!-- Canvas -->
+  <canvas id="gc" style="position:absolute;top:40px;left:180px;right:0;bottom:24px;width:calc(100% - 180px)!important;height:calc(100vh - 64px)!important;"></canvas>
 
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // 2. INDEXEDDB — cache layer
-    //    Schema: DB "sankalp_geo" → store "assets" → key "payload"
-    //    { data: [...], ts: timestamp, threshold: N }
-    // ═══════════════════════════════════════════════════════════════════════════════
-    const DB_NAME = "sankalp_geo";
-    const DB_VERSION = 2;
-    const STORE = "assets";
-    const CACHE_KEY = "payload";
-    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  <!-- Status bar -->
+  <div id="statusbar">
+    <span>ASSETS <span class="sv" id="sb-total">—</span></span>
+    <span>OP <span class="sv" id="sb-op" style="color:#00e676">—</span></span>
+    <span>WATCH <span class="sv" id="sb-watch" style="color:#ff9800">—</span></span>
+    <span>CRIT <span class="sv" id="sb-crit" style="color:#ff4b4b">—</span></span>
+    <span style="margin-left:auto">SANKALP TACTICAL · THREE.JS r160</span>
+  </div>
+</div>
 
-    let db = null;
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════
+// DATA — injected by Python (darshan_geo_map_3d.py)
+// ═══════════════════════════════════════════════════
+const PY_ASSETS     = __ASSETS_JSON__;
+const THRESHOLD     = __THRESHOLD__;
+const FORCE_REFRESH = __FORCE_REFRESH__;
 
-    function openDB() {
-      return new Promise((resolve, reject) => {
-        const req = indexedDB.open(DB_NAME, DB_VERSION);
-        req.onupgradeneeded = e => {
-          const d = e.target.result;
-          if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE);
-        };
-        req.onsuccess = e => resolve(e.target.result);
-        req.onerror = e => reject(e.target.error);
-      });
+// ═══════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════
+const GLOBE_R = 2.0;
+const BRANCH_COL = { IAF:'#4FC3F7', Army:'#81C784', Navy:'#4DB6AC' };
+const BRANCH_HEX = { IAF:0x4FC3F7, Army:0x81C784, Navy:0x4DB6AC };
+
+function statusColor(score, t) {
+  if(score >= t)      return { hex:0x00e676, css:'#00e676', label:'OPERATIONAL' };
+  if(score >= t-20)   return { hex:0xff9800, css:'#ff9800', label:'WATCH'       };
+  return               { hex:0xff4b4b, css:'#ff4b4b', label:'CRITICAL'    };
+}
+
+// ═══════════════════════════════════════════════════
+// GEO
+// ═══════════════════════════════════════════════════
+function ll2v(lat, lon, r) {
+  const phi=(90-lat)*Math.PI/180, th=(lon+180)*Math.PI/180;
+  return new THREE.Vector3(-r*Math.sin(phi)*Math.cos(th), r*Math.cos(phi), r*Math.sin(phi)*Math.sin(th));
+}
+
+// ═══════════════════════════════════════════════════
+// RENDERER / SCENE / CAMERA
+// ═══════════════════════════════════════════════════
+const canvas   = document.getElementById('gc');
+const wrap     = document.getElementById('wrap');
+
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+
+function resize() {
+  const w=canvas.clientWidth, h=canvas.clientHeight;
+  renderer.setSize(w,h,false);
+  camera.aspect=w/h;
+  camera.updateProjectionMatrix();
+}
+
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45,2,0.1,100);
+camera.position.set(0,0,5.8);
+
+// Lights
+scene.add(new THREE.AmbientLight(0xffffff,0.85));
+const sun=new THREE.DirectionalLight(0xfff5e0,2.4); sun.position.set(8,4,6); scene.add(sun);
+const fill=new THREE.DirectionalLight(0x4488bb,0.3); fill.position.set(-5,-2,-5); scene.add(fill);
+
+// Stars
+(()=>{
+  const geo=new THREE.BufferGeometry();
+  const p=new Float32Array(5000*3);
+  for(let i=0;i<p.length;i++) p[i]=(Math.random()-.5)*100;
+  geo.setAttribute('position',new THREE.BufferAttribute(p,3));
+  scene.add(new THREE.Points(geo,new THREE.PointsMaterial({color:0xffffff,size:0.05})));
+})();
+
+// ── Earth texture (canvas fallback) ───────────────
+function buildCanvasTex() {
+  const W=2048,H=1024,cv=document.createElement('canvas');
+  cv.width=W;cv.height=H;const ctx=cv.getContext('2d');
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0a1a3a'); g.addColorStop(.5,'#0d2b5e'); g.addColorStop(1,'#0a1a3a');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  function land(coords,c){
+    ctx.beginPath(); ctx.fillStyle=c;
+    coords.forEach(([la,lo],i)=>{ const x=(lo+180)/360*W,y=(90-la)/180*H; i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+    ctx.closePath(); ctx.fill();
+  }
+  land([[71,28],[60,5],[45,5],[40,18],[48,40],[68,30]],'#1a3d1a');
+  land([[37,10],[-35,20],[-35,36],[10,45],[20,40],[37,25]],'#1e4820');
+  land([[70,30],[45,38],[25,57],[10,80],[25,97],[50,140],[72,80],[70,45]],'#1a3d1a');
+  land([[37,68],[22,68],[8,77],[8,78],[23,92],[32,97],[37,78]],'#2a5c2a');
+  land([[-15,128],[-38,147],[-34,116]],'#1e4820');
+  land([[70,-140],[40,-70],[8,-77],[20,-105],[65,-168]],'#1a3d1a');
+  land([[10,-73],[-55,-68],[-5,-35],[10,-62]],'#1e4820');
+  land([[-90,-180],[-90,180],[-72,180],[-72,-180]],'#c8d8e8');
+  ctx.strokeStyle='rgba(50,80,120,0.13)'; ctx.lineWidth=.5;
+  for(let la=-60;la<=60;la+=30){ctx.beginPath();ctx.moveTo(0,(90-la)/180*H);ctx.lineTo(W,(90-la)/180*H);ctx.stroke();}
+  for(let lo=-150;lo<=150;lo+=30){ctx.beginPath();ctx.moveTo((lo+180)/360*W,0);ctx.lineTo((lo+180)/360*W,H);ctx.stroke();}
+  return new THREE.CanvasTexture(cv);
+}
+
+const globeMat = new THREE.MeshPhongMaterial({map:buildCanvasTex(),shininess:15,specular:new THREE.Color(0x112233)});
+const globe    = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_R,72,72), globeMat);
+scene.add(globe);
+
+// Try CDN hi-res texture
+new THREE.TextureLoader().load(
+  'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/land_ocean_ice_cloud_2048.jpg',
+  t=>{ globeMat.map=t; globeMat.needsUpdate=true; }, undefined, ()=>{}
+);
+
+// Atmosphere
+scene.add(new THREE.Mesh(
+  new THREE.SphereGeometry(GLOBE_R*1.03,64,64),
+  new THREE.MeshPhongMaterial({color:0x1a4a8a,transparent:true,opacity:0.07,side:THREE.BackSide})
+));
+
+// Overlay group (grid + india box)
+const ovl = new THREE.Group(); scene.add(ovl);
+(()=>{
+  const mat=new THREE.LineBasicMaterial({color:0x1a3060,transparent:true,opacity:0.28});
+  for(let la=-60;la<=60;la+=30){const p=[];for(let lo=0;lo<=360;lo+=2)p.push(ll2v(la,lo-180,GLOBE_R+.004));ovl.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(p),mat));}
+  for(let lo=0;lo<360;lo+=30){const p=[];for(let la=-90;la<=90;la+=2)p.push(ll2v(la,lo,GLOBE_R+.004));ovl.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(p),mat));}
+  // India highlight
+  const imat=new THREE.LineBasicMaterial({color:0x2a6aff,transparent:true,opacity:0.5});
+  const ipts=[[8,68],[8,97.5],[37.5,97.5],[37.5,68],[8,68]].map(([la,lo])=>ll2v(la,lo,GLOBE_R+.014));
+  ovl.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ipts),imat));
+  // Threat zone arcs
+  const zones=[[33.5,78.5,500,0xff4b4b],[30,71,420,0xff9800],[7,76,380,0x2196F3]];
+  zones.forEach(([lat,lon,km,col])=>{
+    const deg=km/111.32,pts=[];
+    for(let i=0;i<=80;i++){const a=i/80*Math.PI*2,la=lat+Math.cos(a)*deg,lo=lon+Math.sin(a)*deg/Math.cos(lat*Math.PI/180);pts.push(ll2v(la,lo,GLOBE_R+.018));}
+    ovl.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:col,transparent:true,opacity:0.45})));
+  });
+})();
+
+// ═══════════════════════════════════════════════════
+// TACTICAL MARKERS
+// ═══════════════════════════════════════════════════
+const markerGroup = new THREE.Group(); scene.add(markerGroup);
+const pulseGroup  = new THREE.Group(); scene.add(pulseGroup);
+
+let allMarkers = [];   // { mesh, pulse, asset, panel, heading, trail }
+let selectedId = null;
+let hoveredId  = null;
+
+function buildMarkers(assets) {
+  // cleanup
+  while(markerGroup.children.length) markerGroup.remove(markerGroup.children[0]);
+  while(pulseGroup.children.length)  pulseGroup.remove(pulseGroup.children[0]);
+  document.querySelectorAll('.thumb').forEach(p=>p.remove());
+  allMarkers=[];
+
+  assets.forEach(a=>{
+    const sc    = statusColor(a.readiness||0, THRESHOLD);
+    const bHex  = BRANCH_HEX[a.branch] || 0x888888;
+    const pos   = ll2v(a.lat||0, a.lon||0, GLOBE_R+0.032);
+
+    // Main dot
+    const dot = new THREE.Mesh(
+      new THREE.SphereGeometry(0.030, 14, 14),
+      new THREE.MeshPhongMaterial({color:sc.hex, emissive:bHex, emissiveIntensity:0.4, shininess:70})
+    );
+    dot.position.copy(pos);
+    dot.userData = { id: a.asset_id || a.id, asset: a };
+    markerGroup.add(dot);
+
+    // Pulse ring for critical
+    let pulse = null;
+    if(a.readiness < THRESHOLD-20) {
+      const rg = new THREE.RingGeometry(0.040, 0.054, 22);
+      const rm = new THREE.MeshBasicMaterial({color:0xff4b4b, transparent:true, opacity:.6, side:THREE.DoubleSide});
+      pulse = new THREE.Mesh(rg, rm);
+      pulse.position.copy(pos);
+      pulse.lookAt(new THREE.Vector3(0,0,0));
+      pulse.rotateX(Math.PI/2);
+      pulseGroup.add(pulse);
     }
 
-    function dbGet(key) {
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE, "readonly");
-        const req = tx.objectStore(STORE).get(key);
-        req.onsuccess = e => resolve(e.target.result);
-        req.onerror = e => reject(e.target.error);
-      });
-    }
-
-    function dbPut(key, value) {
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE, "readwrite");
-        const req = tx.objectStore(STORE).put(value, key);
-        req.onsuccess = e => resolve(e.target.result);
-        req.onerror = e => reject(e.target.error);
-      });
-    }
-
-    async function resolveAssets() {
-      db = await openDB();
-      const now = Date.now();
-
-      if (!FORCE_REFRESH) {
-        try {
-          const cached = await dbGet(CACHE_KEY);
-          if (cached && (now - cached.ts) < CACHE_TTL && cached.threshold === THRESHOLD) {
-            document.getElementById("cache-status").textContent = "HIT ✓";
-            return cached.data;
-          }
-        } catch (_) { }
-      }
-
-      // Fresh data from Python
-      const payload = { data: PYTHON_ASSETS, ts: now, threshold: THRESHOLD };
-      try {
-        await dbPut(CACHE_KEY, payload);
-        document.getElementById("cache-status").textContent = "WRITTEN ✓";
-      } catch (_) {
-        document.getElementById("cache-status").textContent = "NO-CACHE";
-      }
-      return PYTHON_ASSETS;
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // 3. GEO HELPERS
-    // ═══════════════════════════════════════════════════════════════════════════════
-    const GLOBE_R = 2.0;
-
-    function latLonToVec3(lat, lon, r) {
-      const phi = (90 - lat) * (Math.PI / 180);
-      const theta = (lon + 180) * (Math.PI / 180);
-      return new THREE.Vector3(
-        -r * Math.sin(phi) * Math.cos(theta),
-        r * Math.cos(phi),
-        r * Math.sin(phi) * Math.sin(theta)
+    // Heading arrow (thin line, 1.5° forward)
+    let headingLine = null;
+    if(a.heading !== undefined && a.heading !== null) {
+      const hdg = a.heading * Math.PI / 180;
+      const la2 = (a.lat||0) + Math.cos(hdg) * 1.5;
+      const lo2 = (a.lon||0) + Math.sin(hdg) * 1.5;
+      const to  = ll2v(la2, lo2, GLOBE_R+0.040);
+      headingLine = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([pos.clone(), to]),
+        new THREE.LineBasicMaterial({color:sc.hex, transparent:true, opacity:0.65})
       );
+      markerGroup.add(headingLine);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // 4. COLOUR MAPS
-    // ═══════════════════════════════════════════════════════════════════════════════
-    const STATUS_COLOR = {
-      operational: 0x00e676,
-      watch: 0xff9800,
-      critical: 0xff4b4b,
-    };
-    const BRANCH_EMISSIVE = {
-      IAF: 0x1565c0,
-      Army: 0x2e7d32,
-      Navy: 0x00695c,
-    };
-
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // 5. THREE.JS SETUP
-    // ═══════════════════════════════════════════════════════════════════════════════
-    const canvas = document.getElementById("globe-canvas");
-    const wrap = document.getElementById("canvas-wrap");
-
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(wrap.clientWidth, wrap.clientHeight);
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, wrap.clientWidth / wrap.clientHeight, 0.1, 100);
-    camera.position.set(0, 0, 6);
-
-    // ── Lighting ──────────────────────────────────────────────────────────────────
-    scene.add(new THREE.AmbientLight(0xffffff, 0.9));   // bright ambient for texture visibility
-    const sun = new THREE.DirectionalLight(0xfff5e0, 2.2);
-    sun.position.set(8, 4, 6);
-    scene.add(sun);
-    const fillLight = new THREE.DirectionalLight(0x4488bb, 0.4);
-    fillLight.position.set(-5, -2, -5);
-    scene.add(fillLight);
-
-    // ── Star field ────────────────────────────────────────────────────────────────
-    (function buildStars() {
-      const geo = new THREE.BufferGeometry();
-      const n = 4000;
-      const pos = new Float32Array(n * 3);
-      for (let i = 0; i < n * 3; i++) pos[i] = (Math.random() - 0.5) * 100;
-      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-      scene.add(new THREE.Points(geo, new THREE.PointsMaterial({
-        color: 0xffffff, size: 0.06, sizeAttenuation: true,
-      })));
-    })();
-
-    // ── Earth texture — canvas fallback (always works offline) ────────────────────
-    function buildCanvasEarthTexture() {
-      const W = 2048, H = 1024;
-      const cv = document.createElement('canvas');
-      cv.width = W; cv.height = H;
-      const ctx = cv.getContext('2d');
-
-      // Ocean gradient
-      const oceanGrad = ctx.createLinearGradient(0, 0, 0, H);
-      oceanGrad.addColorStop(0, '#0a1a3a');
-      oceanGrad.addColorStop(0.35, '#0d2b5e');
-      oceanGrad.addColorStop(0.5, '#0f3670');
-      oceanGrad.addColorStop(0.65, '#0d2b5e');
-      oceanGrad.addColorStop(1, '#0a1a3a');
-      ctx.fillStyle = oceanGrad;
-      ctx.fillRect(0, 0, W, H);
-
-      // Helper: draw a land polygon from [lat,lon] pairs (equirectangular projection)
-      function land(coords, color) {
-        ctx.beginPath();
-        ctx.fillStyle = color;
-        coords.forEach(([lat, lon], i) => {
-          const x = (lon + 180) / 360 * W;
-          const y = (90 - lat) / 180 * H;
-          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-        });
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      const LAND = '#1a3d1a';
-      const LAND2 = '#1e4820';
-      const DESERT = '#3d3020';
-      const ICE = '#c8d8e8';
-
-      // ── Major land masses (simplified polygons) ───────────────────────────────
-      // Europe
-      land([[71, 28], [69, 18], [65, 14], [60, 5], [55, 5], [50, 3], [45, 5], [40, 18], [42, 28], [48, 40], [55, 38], [62, 30], [68, 30]], LAND);
-      // Africa
-      land([[37, 10], [35, -5], [30, -18], [10, -18], [-5, -5], [-35, 20], [-35, 30], [-20, 36], [-5, 40], [10, 45], [20, 40], [37, 37], [37, 25]], LAND2);
-      // Asia mainland
-      land([[70, 30], [60, 28], [55, 38], [45, 38], [40, 45], [35, 42], [30, 50], [25, 57], [20, 60], [15, 75], [8, 77], [10, 80], [20, 88], [25, 90], [25, 97], [30, 100], [35, 110], [45, 132], [50, 140], [55, 135], [60, 130], [65, 140], [70, 132], [72, 120], [72, 80], [70, 60], [68, 55], [70, 45], [72, 38], [70, 30]], LAND);
-      // India
-      land([[37, 68], [37, 78], [35, 77], [32, 78], [28, 97], [23, 92], [22, 88], [20, 86], [16, 82], [12, 80], [8, 77], [8, 78], [10, 76], [8, 77], [10, 73], [18, 72], [22, 68], [27, 66], [28, 64], [32, 66], [37, 68]], '#2a5c2a');
-      // Southeast Asia
-      land([[25, 97], [22, 98], [20, 100], [18, 104], [15, 107], [10, 107], [5, 103], [2, 104], [5, 108], [10, 108], [15, 108], [20, 106], [25, 100]], LAND);
-      // Indonesia (simplified)
-      land([[-8, 95], [-5, 105], [0, 108], [-1, 116], [-8, 115], [-9, 118], [-5, 122], [-8, 127], [-8, 115], [-8, 105], [-8, 95]], LAND2);
-      // Australia
-      land([[-15, 128], [-12, 136], [-15, 142], [-28, 153], [-38, 147], [-38, 140], [-34, 116], [-22, 114], [-15, 128]], LAND2);
-      // North America
-      land([[70, -140], [70, -90], [60, -65], [50, -55], [45, -65], [40, -70], [35, -75], [28, -80], [25, -90], [20, -88], [15, -85], [10, -83], [8, -77], [8, -78], [20, -105], [30, -110], [32, -117], [38, -122], [50, -125], [55, -130], [65, -168], [70, -160], [70, -140]], LAND);
-      // South America
-      land([[10, -73], [8, -60], [5, -52], [0, -50], [-10, -38], [-20, -40], [-35, -57], [-55, -68], [-55, -65], [-40, -62], [-25, -48], [-5, -35], [5, -52], [8, -60], [10, -62], [12, -70], [8, -77]], LAND2);
-      // Greenland
-      land([[60, -42], [62, -52], [70, -52], [76, -68], [84, -30], [80, -18], [74, -22], [66, -34], [60, -42]], ICE);
-      // Antarctica
-      land([[-90, -180], [-90, 180], [-70, 180], [-68, 0], [-70, -180]], ICE);
-      // Arctic ice cap
-      land([[90, -180], [90, 180], [78, 180], [72, 90], [70, 0], [72, -90], [78, -180]], ICE);
-
-      // ── Country border lines for key regions ──────────────────────────────────
-      ctx.strokeStyle = 'rgba(100,180,100,0.25)';
-      ctx.lineWidth = 1.5;
-      // India rough border outline
-      ctx.beginPath();
-      [[37, 68], [32, 66], [28, 64], [27, 70], [24, 68], [23, 70], [22, 68], [20, 73], [14, 74], [10, 76], [8, 78],
-      [8, 77], [9, 77], [10, 80], [13, 80], [16, 82], [18, 83], [20, 86], [22, 88], [23, 92], [24, 94], [26, 92],
-      [26, 97], [28, 97], [30, 97], [32, 97], [34, 78], [35, 77], [37, 78], [37, 68]].forEach(([lat, lon], i) => {
-        const x = (lon + 180) / 360 * W, y = (90 - lat) / 180 * H;
-        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      });
-      ctx.closePath();
-      ctx.strokeStyle = 'rgba(180,220,180,0.5)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // Ocean grid lines (subtle)
-      ctx.strokeStyle = 'rgba(50,80,120,0.15)';
-      ctx.lineWidth = 0.5;
-      for (let lat = -60; lat <= 60; lat += 30) {
-        ctx.beginPath();
-        ctx.moveTo(0, (90 - lat) / 180 * H);
-        ctx.lineTo(W, (90 - lat) / 180 * H);
-        ctx.stroke();
-      }
-      for (let lon = -150; lon <= 150; lon += 30) {
-        ctx.beginPath();
-        ctx.moveTo((lon + 180) / 360 * W, 0);
-        ctx.lineTo((lon + 180) / 360 * W, H);
-        ctx.stroke();
-      }
-
-      return new THREE.CanvasTexture(cv);
-    }
-
-    // ── Globe sphere ──────────────────────────────────────────────────────────────
-    const globeGeo = new THREE.SphereGeometry(GLOBE_R, 72, 72);
-    const globeMat = new THREE.MeshPhongMaterial({
-      map: buildCanvasEarthTexture(),  // canvas fallback — immediate
-      shininess: 20,
-      specular: new THREE.Color(0x224466),
-    });
-    const globe = new THREE.Mesh(globeGeo, globeMat);
-    scene.add(globe);
-
-    // ── Try to upgrade to hi-res CDN texture (better detail) ─────────────────────
-    // raw.githubusercontent.com serves CORS: Access-Control-Allow-Origin: *
-    const TEXTURE_URLS = [
-      'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/land_ocean_ice_cloud_2048.jpg',
-      'https://threejs.org/examples/textures/land_ocean_ice_cloud_2048.jpg',
-    ];
-    (function loadHiResTexture(idx) {
-      if (idx >= TEXTURE_URLS.length) return;  // canvas fallback already active
-      const loader = new THREE.TextureLoader();
-      loader.crossOrigin = 'anonymous';
-      loader.load(
-        TEXTURE_URLS[idx],
-        (tex) => {
-          globeMat.map = tex;
-          globeMat.needsUpdate = true;
-        },
-        undefined,
-        () => loadHiResTexture(idx + 1)  // try next URL on error
-      );
-    })(0);
-
-    // ── Atmosphere glow ───────────────────────────────────────────────────────────
-    const atmoGeo = new THREE.SphereGeometry(GLOBE_R * 1.03, 64, 64);
-    const atmoMat = new THREE.MeshPhongMaterial({
-      color: 0x1a4a8a,
-      transparent: true,
-      opacity: 0.08,
-      side: THREE.BackSide,
-    });
-    scene.add(new THREE.Mesh(atmoGeo, atmoMat));
-
-    // ── Overlay group — rotates in sync with the globe ────────────────────────────
-    const overlayGroup = new THREE.Group();
-    scene.add(overlayGroup);
-
-    // ── Latitude / Longitude grid lines ──────────────────────────────────────────
-    (function buildGrid() {
-      const mat = new THREE.LineBasicMaterial({ color: 0x1a3060, transparent: true, opacity: 0.35 });
-      const r = GLOBE_R + 0.005;
-
-      // Parallels (every 30°)
-      for (let lat = -60; lat <= 60; lat += 30) {
-        const pts = [];
-        for (let lon = 0; lon <= 360; lon += 2)
-          pts.push(latLonToVec3(lat, lon - 180, r));
-        overlayGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
-      }
-      // Meridians (every 30°)
-      for (let lon = 0; lon < 360; lon += 30) {
-        const pts = [];
-        for (let lat = -90; lat <= 90; lat += 2)
-          pts.push(latLonToVec3(lat, lon, r));
-        overlayGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
-      }
-    })();
-
-    // ── India outline (simplified bounding rectangle highlight) ──────────────────
-    (function buildIndiaBox() {
-      const mat = new THREE.LineBasicMaterial({ color: 0x2a6aff, transparent: true, opacity: 0.5 });
-      const corners = [
-        [8.0, 68.0], [8.0, 97.5], [37.5, 97.5], [37.5, 68.0], [8.0, 68.0],
-      ];
-      const pts = corners.map(([la, lo]) => latLonToVec3(la, lo, GLOBE_R + 0.012));
-      overlayGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
-    })();
-
-    // ── Threat zone rings (Northern / Western / Southern) ────────────────────────
-    const THREAT_ZONES = [
-      { lat: 33.5, lon: 78.5, rKm: 500, color: 0xff4b4b, label: "Northern LAC" },
-      { lat: 30.0, lon: 71.0, rKm: 420, color: 0xff9800, label: "Western LoC" },
-      { lat: 7.0, lon: 76.0, rKm: 380, color: 0x2196F3, label: "Southern Sea" },
-    ];
-
-    THREAT_ZONES.forEach(({ lat, lon, rKm, color }) => {
-      const centre = latLonToVec3(lat, lon, GLOBE_R);
-      const deg = rKm / 111.32;
-      const pts = [];
-      const STEPS = 64;
-      for (let i = 0; i <= STEPS; i++) {
-        const a = (i / STEPS) * Math.PI * 2;
-        const la = lat + Math.cos(a) * deg;
-        const lo = lon + Math.sin(a) * deg / Math.cos(lat * Math.PI / 180);
-        pts.push(latLonToVec3(la, lo, GLOBE_R + 0.018));
-      }
-      overlayGroup.add(new THREE.Line(
+    // Trail
+    let trailLine = null;
+    if(a.history && a.history.length > 1) {
+      const pts = a.history.map(([la,lo]) => ll2v(la, lo, GLOBE_R+0.030));
+      trailLine = new THREE.Line(
         new THREE.BufferGeometry().setFromPoints(pts),
-        new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.55 })
-      ));
-    });
-
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // 6. ASSET MARKERS
-    // ═══════════════════════════════════════════════════════════════════════════════
-    let markerGroup = new THREE.Group();
-    let pulseGroup = new THREE.Group(); // animated rings for critical assets
-    let allMarkerMeta = [];               // { mesh, pulse, asset }
-    scene.add(markerGroup);
-    scene.add(pulseGroup);
-
-    function buildMarkers(assets) {
-      // Clear previous
-      while (markerGroup.children.length) markerGroup.remove(markerGroup.children[0]);
-      while (pulseGroup.children.length) pulseGroup.remove(pulseGroup.children[0]);
-      allMarkerMeta = [];
-
-      assets.forEach(a => {
-        const pos = latLonToVec3(a.lat, a.lon, GLOBE_R + 0.03);
-        const color = STATUS_COLOR[a.status] || 0x888888;
-        const emit = BRANCH_EMISSIVE[a.branch] || 0x333333;
-
-        // Main dot
-        const geo = new THREE.SphereGeometry(0.028, 10, 10);
-        const mat = new THREE.MeshPhongMaterial({ color, emissive: emit, emissiveIntensity: 0.6, shininess: 80 });
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.copy(pos);
-        markerGroup.add(mesh);
-
-        // Halo ring for critical
-        let pulse = null;
-        if (a.status === "critical") {
-          const rGeo = new THREE.RingGeometry(0.038, 0.052, 20);
-          const rMat = new THREE.MeshBasicMaterial({ color: 0xff4b4b, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
-          pulse = new THREE.Mesh(rGeo, rMat);
-          pulse.position.copy(pos);
-          // Orient ring to face outward from globe
-          pulse.lookAt(new THREE.Vector3(0, 0, 0));
-          pulse.rotateX(Math.PI / 2);
-          pulseGroup.add(pulse);
-        }
-
-        allMarkerMeta.push({ mesh, pulse, asset: a });
-      });
+        new THREE.LineBasicMaterial({color:sc.hex, transparent:true, opacity:0.28})
+      );
+      markerGroup.add(trailLine);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // 7. FILTERING STATE
-    // ═══════════════════════════════════════════════════════════════════════════════
-    let currentBranch = "All";
-    let currentStatus = "All";
+    // DOM thumbnail panel
+    const panel = buildPanel(a, sc);
+    wrap.appendChild(panel);
 
-    function applyFilters() {
-      allMarkerMeta.forEach(({ mesh, pulse, asset }) => {
-        const bOk = currentBranch === "All" || asset.branch === currentBranch;
-        const sOk = currentStatus === "All" || asset.status === currentStatus;
-        const vis = bOk && sOk;
-        mesh.visible = vis;
-        if (pulse) pulse.visible = vis;
-      });
-    }
+    allMarkers.push({ dot, pulse, asset:a, panel, heading:headingLine, trail:trailLine });
+  });
+}
 
-    window.setBranch = function (btn) {
-      currentBranch = btn.dataset.branch;
-      document.querySelectorAll("#hud .hud-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      applyFilters();
-    };
+function buildPanel(a, sc) {
+  const el = document.createElement('div');
+  el.className = 'thumb';
+  el.id = 'p-' + (a.asset_id||a.id);
+  const bc   = BRANCH_COL[a.branch] || '#9e9e9e';
+  const rb   = Math.round(a.readiness||0);
+  const bclr = sc.css;
+  el.style.borderColor = bclr;
+  el.innerHTML = `
+    <div class="thumb-header">
+      <span class="thumb-cls" style="color:${bc}">${a.branch||'—'}</span>
+      <span class="thumb-id" style="background:${bclr}18;color:${bclr};border:1px solid ${bclr}40">
+        ${a.asset_id||a.id||'—'}
+      </span>
+    </div>
+    <div class="thumb-label">${a.type||a.asset_type||a.vessel_type||'—'}</div>
+    <div class="thumb-type">${a.unit||'—'}</div>
+    <div class="thumb-grid">
+      <span class="thumb-key">STATUS</span>
+      <span style="color:${bclr};letter-spacing:1px;font-size:9px">${sc.label}</span>
+      <span class="thumb-key">READINESS</span>
+      <span class="thumb-val">${rb}%</span>
+      <span class="thumb-key">LAT</span>
+      <span class="thumb-val">${(a.lat||0).toFixed(2)}°</span>
+      <span class="thumb-key">LON</span>
+      <span class="thumb-val">${(a.lon||0).toFixed(2)}°</span>
+      ${a.heading!=null?`<span class="thumb-key">HDG</span><span class="thumb-val">${parseFloat(a.heading||0).toFixed(0)}°</span>`:''}
+    </div>
+    <div class="bar-outer">
+      <div class="bar-inner" style="background:${bclr};width:${rb}%"></div>
+    </div>`;
+  return el;
+}
 
-    window.setStatus = function (btn) {
-      currentStatus = btn.dataset.status;
-      document.querySelectorAll("#filter-bar .hud-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      applyFilters();
-    };
+// ═══════════════════════════════════════════════════
+// TRACK LIST (sidebar)
+// ═══════════════════════════════════════════════════
+function buildTrackList(assets) {
+  const list = document.getElementById('track-list');
+  list.innerHTML = '';
+  document.getElementById('trk-list-count').textContent = assets.length;
+  document.getElementById('trk-count').textContent = assets.length + ' TRACKS';
 
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // 8. MOUSE / DRAG / ZOOM
-    // ═══════════════════════════════════════════════════════════════════════════════
-    let isDragging = false, prevMouse = { x: 0, y: 0 };
-    let rotX = 0.45, rotY = 0;
-    let zoom = 6;
+  // Stats
+  const op    = assets.filter(a=>(a.readiness||0)>=THRESHOLD).length;
+  const watch = assets.filter(a=>(a.readiness||0)>=THRESHOLD-20&&(a.readiness||0)<THRESHOLD).length;
+  const crit  = assets.filter(a=>(a.readiness||0)<THRESHOLD-20).length;
+  document.getElementById('sb-total').textContent = assets.length;
+  document.getElementById('sb-op').textContent    = op;
+  document.getElementById('sb-watch').textContent = watch;
+  document.getElementById('sb-crit').textContent  = crit;
 
-    canvas.addEventListener("mousedown", e => { isDragging = true; prevMouse = { x: e.clientX, y: e.clientY }; });
-    window.addEventListener("mouseup", () => { isDragging = false; });
-    window.addEventListener("mousemove", e => {
-      if (!isDragging) return;
-      const dx = e.clientX - prevMouse.x;
-      const dy = e.clientY - prevMouse.y;
-      rotY += dx * 0.006;
-      rotX += dy * 0.006;
-      rotX = Math.max(-1.4, Math.min(1.4, rotX));
-      prevMouse = { x: e.clientX, y: e.clientY };
-    });
-    canvas.addEventListener("wheel", e => {
-      zoom = Math.max(3.5, Math.min(10, zoom + e.deltaY * 0.006));
-      e.preventDefault();
-    }, { passive: false });
+  assets.forEach(a=>{
+    const sc  = statusColor(a.readiness||0, THRESHOLD);
+    const div = document.createElement('div');
+    div.className = 'trk';
+    div.id = 'li-'+(a.asset_id||a.id);
+    div.innerHTML = `
+      <div class="trk-id">${a.asset_id||a.id}</div>
+      <div class="trk-lbl">${a.type||a.asset_type||a.vessel_type||'—'}</div>
+      <div class="trk-cls" style="color:${sc.css}">${sc.label}</div>`;
+    div.addEventListener('click', ()=>selectAsset(a.asset_id||a.id));
+    list.appendChild(div);
+  });
+}
 
-    // Touch support
-    let lastTouch = null;
-    canvas.addEventListener("touchstart", e => { lastTouch = e.touches[0]; }, { passive: true });
-    canvas.addEventListener("touchmove", e => {
-      if (!lastTouch) return;
-      const t = e.touches[0];
-      rotY += (t.clientX - lastTouch.clientX) * 0.006;
-      rotX += (t.clientY - lastTouch.clientY) * 0.006;
-      rotX = Math.max(-1.4, Math.min(1.4, rotX));
-      lastTouch = t;
-    }, { passive: true });
+function selectAsset(id) {
+  selectedId = (selectedId===id) ? null : id;
+  document.querySelectorAll('.trk').forEach(el=>el.classList.remove('sel'));
+  if(selectedId) {
+    document.getElementById('li-'+selectedId)?.classList.add('sel');
+    // Show that panel
+    const rec = allMarkers.find(m=>m.dot.userData.id===selectedId);
+    if(rec) { rec.panel.style.display='block'; positionPanel(rec); }
+  }
+}
 
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // 9. RAYCASTING — hover tooltip
-    // ═══════════════════════════════════════════════════════════════════════════════
-    const raycaster = new THREE.Raycaster();
-    raycaster.params.Points = { threshold: 0.05 };
-    const mouse = new THREE.Vector2();
-    const tooltip = document.getElementById("tooltip");
+// ═══════════════════════════════════════════════════
+// DRAG / ZOOM
+// ═══════════════════════════════════════════════════
+let isDrag=false, pm={x:0,y:0};
+let rotX=0.42, rotY=Math.PI-(80*Math.PI/180);
+let zoom=5.8;
 
-    canvas.addEventListener("mousemove", e => {
-      const rect = canvas.getBoundingClientRect();
-      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+canvas.addEventListener('mousedown',e=>{isDrag=true;pm={x:e.clientX,y:e.clientY};});
+window.addEventListener('mouseup',()=>isDrag=false);
+window.addEventListener('mousemove',e=>{
+  if(!isDrag) return;
+  rotY+=(e.clientX-pm.x)*.006;
+  rotX+=(e.clientY-pm.y)*.006;
+  rotX=Math.max(-1.4,Math.min(1.4,rotX));
+  pm={x:e.clientX,y:e.clientY};
+});
+canvas.addEventListener('wheel',e=>{
+  zoom=Math.max(3.5,Math.min(10,zoom+e.deltaY*.005));
+  e.preventDefault();
+},{passive:false});
 
-      raycaster.setFromCamera(mouse, camera);
-      const hits = raycaster.intersectObjects(markerGroup.children.filter(m => m.visible));
+// Touch
+let lt=null;
+canvas.addEventListener('touchstart',e=>{lt=e.touches[0];},{passive:true});
+canvas.addEventListener('touchmove',e=>{
+  if(!lt) return;
+  const t=e.touches[0];
+  rotY+=(t.clientX-lt.clientX)*.006;
+  rotX+=(t.clientY-lt.clientY)*.006;
+  rotX=Math.max(-1.4,Math.min(1.4,rotX));
+  lt=t;
+},{passive:true});
 
-      if (hits.length) {
-        const hit = hits[0];
-        const meta = allMarkerMeta.find(m => m.mesh === hit.object);
-        if (meta) {
-          const a = meta.asset;
-          const sc = { operational: "op", watch: "watch", critical: "crit" }[a.status] || "";
-          tooltip.innerHTML =
-            `<div class="tt-id">${a.id}</div>` +
-            `<div>Type: ${a.type}</div>` +
-            `<div>Branch: ${a.branch}</div>` +
-            `<div>Unit: ${a.unit}</div>` +
-            `<div>Readiness: <b class="tt-stat ${sc}">${a.readiness}%</b></div>` +
-            `<div>Status: <b class="${sc}">${a.status.toUpperCase()}</b></div>`;
-          tooltip.style.display = "block";
-          tooltip.style.left = (e.clientX - rect.left + 16) + "px";
-          tooltip.style.top = (e.clientY - rect.top - 8) + "px";
-        }
-      } else {
-        tooltip.style.display = "none";
-      }
-    });
-    canvas.addEventListener("mouseleave", () => { tooltip.style.display = "none"; });
+// ═══════════════════════════════════════════════════
+// RAYCASTER — hover + click
+// ═══════════════════════════════════════════════════
+const raycaster = new THREE.Raycaster();
+const mouse     = new THREE.Vector2();
 
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // 10. AUTO-ORIENT — centre on India on load
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // In Three.js SphereGeometry (phiStart=0, phiLength=2π):
-    //   rotation.y = 0  → camera sees the 180° longitude (date line) due to seam offset
-    //   To bring 80°E (India) to face camera: rotY = π - (80° in radians)
-    //   Negative tilt on X raises the northern hemisphere toward the viewer
-    rotY = Math.PI - (80 * Math.PI / 180);   // India longitude centres on camera
-    rotX = -(20 * Math.PI / 180);            // tilt: India/tropics face forward
+canvas.addEventListener('mousemove',e=>{
+  const rect=canvas.getBoundingClientRect();
+  mouse.x=((e.clientX-rect.left)/rect.width)*2-1;
+  mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
 
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // 11. RENDER LOOP
-    // ═══════════════════════════════════════════════════════════════════════════════
-    let t = 0;
+  raycaster.setFromCamera(mouse, camera);
+  const meshes = allMarkers.filter(m=>m.dot.visible).map(m=>m.dot);
+  const hits   = raycaster.intersectObjects(meshes);
 
-    function animate() {
-      requestAnimationFrame(animate);
-      t += 0.016;
+  // Hide non-selected panels
+  allMarkers.forEach(m=>{ if(m.dot.userData.id!==selectedId) m.panel.style.display='none'; });
 
-      // Subtle auto-rotation when not dragging
-      if (!isDragging) rotY += 0.0008;
+  if(hits.length) {
+    const id  = hits[0].object.userData.id;
+    hoveredId = id;
+    const rec = allMarkers.find(m=>m.dot.userData.id===id);
+    if(rec) { rec.panel.style.display='block'; positionPanel(rec); }
+    canvas.style.cursor='crosshair';
+  } else {
+    hoveredId=null;
+    canvas.style.cursor='';
+  }
+});
 
-      globe.rotation.y = rotY;
-      globe.rotation.x = rotX;
-      overlayGroup.rotation.y = rotY;
-      overlayGroup.rotation.x = rotX;
-      markerGroup.rotation.y = rotY;
-      markerGroup.rotation.x = rotX;
-      pulseGroup.rotation.y = rotY;
-      pulseGroup.rotation.x = rotX;
+canvas.addEventListener('click',()=>{
+  if(hoveredId) selectAsset(hoveredId);
+  else { selectedId=null; document.querySelectorAll('.trk').forEach(e=>e.classList.remove('sel')); }
+});
 
-      // Pulse critical rings
-      allMarkerMeta.forEach(({ pulse }) => {
-        if (!pulse) return;
-        const scale = 1 + 0.22 * Math.sin(t * 3);
-        pulse.scale.set(scale, scale, 1);
-        pulse.material.opacity = 0.55 + 0.25 * Math.sin(t * 3 + 1);
-      });
+function positionPanel(rec) {
+  const wp  = rec.dot.getWorldPosition(new THREE.Vector3());
+  const ndc = wp.clone().project(camera);
+  if(ndc.z>1.0){ rec.panel.style.display='none'; return; }
+  const rect = canvas.getBoundingClientRect();
+  const sx = ((ndc.x+1)/2)*rect.width  + rect.left;
+  const sy = ((-ndc.y+1)/2)*rect.height + rect.top;
+  rec.panel.style.left = (sx+20)+'px';
+  rec.panel.style.top  = Math.max(44, sy-30)+'px';
+}
 
-      camera.position.z = zoom;
-      renderer.render(scene, camera);
-    }
+// ═══════════════════════════════════════════════════
+// FILTERING
+// ═══════════════════════════════════════════════════
+let filterBranchVal='ALL', filterStatusVal='ALL';
 
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // 12. RESIZE HANDLER
-    // ═══════════════════════════════════════════════════════════════════════════════
-    window.addEventListener("resize", () => {
-      const w = wrap.clientWidth, h = wrap.clientHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    });
+function applyFilters() {
+  allMarkers.forEach(({dot, pulse, trail, heading, panel, asset})=>{
+    let v = true;
+    if(filterBranchVal!=='ALL' && asset.branch!==filterBranchVal)  v=false;
+    if(filterStatusVal==='op'    && (asset.readiness||0)<THRESHOLD)       v=false;
+    if(filterStatusVal==='watch' && !((asset.readiness||0)>=THRESHOLD-20&&(asset.readiness||0)<THRESHOLD)) v=false;
+    if(filterStatusVal==='crit'  && (asset.readiness||0)>=THRESHOLD-20)   v=false;
+    dot.visible = v;
+    if(pulse)   pulse.visible = v;
+    if(trail)   trail.visible = v;
+    if(heading) heading.visible = v;
+    if(!v) panel.style.display='none';
+  });
+}
 
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // 13. BOOT
-    // ═══════════════════════════════════════════════════════════════════════════════
-    (async function boot() {
-      try {
-        const assets = await resolveAssets();
-        buildMarkers(assets);
-        animate();
-        document.getElementById("loader").style.display = "none";
-      } catch (err) {
-        console.error("Globe boot error:", err);
-        // Fallback: use Python data directly
-        buildMarkers(PYTHON_ASSETS);
-        animate();
-        document.getElementById("loader").style.display = "none";
-        document.getElementById("cache-status").textContent = "ERROR";
-      }
-    })();
-  </script>
-  <script src="sankalp_tactical_layer.js"></script>
+window.filterBranch = function(val, btn) {
+  document.querySelectorAll('.sb-btn').forEach(b=>{ if(b.textContent.includes(val)||val==='ALL') {} });
+  // clear branch buttons
+  document.querySelectorAll('#sidebar .sb-btn').forEach(b=>{ if(!b.onclick?.toString().includes('filterStatus')) b.classList.remove('active'); });
+  btn.classList.add('active');
+  filterBranchVal=val; applyFilters();
+};
+
+window.filterStatus = function(val, btn) {
+  document.querySelectorAll('#sidebar .sb-btn').forEach(b=>{ if(b.onclick?.toString().includes('filterStatus')) b.classList.remove('active'); });
+  btn.classList.add('active');
+  filterStatusVal=val; applyFilters();
+};
+
+window.setTab = function(tab, btn) {
+  document.querySelectorAll('.tb-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  filterBranchVal='ALL'; filterStatusVal='ALL';
+  if(tab==='hostile')   { filterBranchVal='UNKNOWN'; }
+  else if(tab==='air')  { /* filter by altitude > 0 handled below */ }
+  applyFilters();
+};
+
+// ═══════════════════════════════════════════════════
+// RENDER LOOP
+// ═══════════════════════════════════════════════════
+let t=0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  t+=0.016;
+
+  if(!isDrag) rotY+=0.0005;
+
+  globe.rotation.x = rotX; globe.rotation.y = rotY;
+  ovl.rotation.x   = rotX; ovl.rotation.y   = rotY;
+  markerGroup.rotation.x = rotX; markerGroup.rotation.y = rotY;
+  pulseGroup.rotation.x  = rotX; pulseGroup.rotation.y  = rotY;
+
+  // Animate critical pulse rings
+  allMarkers.forEach(({pulse})=>{
+    if(!pulse) return;
+    const s=1+0.18*Math.sin(t*3.2);
+    pulse.scale.setScalar(s);
+    pulse.material.opacity=0.55+0.3*Math.sin(t*3.2);
+  });
+
+  // Update hovered/selected panel positions
+  allMarkers.forEach(rec=>{
+    if(rec.panel.style.display!=='none') positionPanel(rec);
+  });
+
+  camera.position.z = zoom;
+  resize();
+  renderer.render(scene, camera);
+
+  // Clock
+  const now=new Date();
+  document.getElementById('clock-display').textContent=now.toUTCString().split(' ')[4]+' UTC';
+}
+
+// ═══════════════════════════════════════════════════
+// INDEXEDDB CACHE (same pattern as original)
+// ═══════════════════════════════════════════════════
+const DB_NAME='sankalp_geo', DB_VER=3, STORE='assets2', CACHE_KEY='payload2';
+
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,DB_VER);r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE);};r.onsuccess=e=>res(e.target.result);r.onerror=e=>rej(e.target.error);});}
+function dbGet(db,k){return new Promise((res,rej)=>{const r=db.transaction(STORE,'readonly').objectStore(STORE).get(k);r.onsuccess=e=>res(e.target.result);r.onerror=e=>rej(e.target.error);});}
+function dbPut(db,k,v){return new Promise((res,rej)=>{const r=db.transaction(STORE,'readwrite').objectStore(STORE).put(v,k);r.onsuccess=e=>res(e.target.result);r.onerror=e=>rej(e.target.error);});}
+
+async function resolveAssets(){
+  let db;
+  try { db=await openDB(); } catch(e){ return PY_ASSETS; }
+  const now=Date.now();
+  if(!FORCE_REFRESH){
+    try{
+      const c=await dbGet(db,CACHE_KEY);
+      if(c&&(now-c.ts)<300000&&c.threshold===THRESHOLD) return c.data;
+    }catch(e){}
+  }
+  try{ await dbPut(db,CACHE_KEY,{data:PY_ASSETS,ts:now,threshold:THRESHOLD}); }catch(e){}
+  return PY_ASSETS;
+}
+
+// ═══════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════
+(async()=>{
+  const assets = await resolveAssets();
+  buildMarkers(assets);
+  buildTrackList(assets);
+  animate();
+  setTimeout(()=>document.getElementById('loader').style.display='none', 500);
+})();
+</script>
 </body>
-
 </html>

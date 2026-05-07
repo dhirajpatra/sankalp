@@ -85,6 +85,9 @@
 ### 📊 Neo4j Graph Browser
 ![Neo4j Graph Browser](docs/images/19.png)
 
+### 📊 Tactical Intelligence on Map
+![Tactical Intelligence on Map](docs/images/20.png)
+
 ---
 
 ## 🏗️ System Architecture
