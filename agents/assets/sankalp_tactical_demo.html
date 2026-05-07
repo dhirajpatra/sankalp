@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SANKALP — Tactical Track Layer Demo</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#040c18;
+  font-family:'Courier New',monospace;
+  overflow:hidden;
+  width:100%;
+  height:100vh;
+  color:#a8d0f0;
+}
+
+/* ── Viewport ── */
+#wrap {
+  position:relative;
+  width:100%;
+  height:100vh;
+  background:radial-gradient(ellipse at 50% 40%,#071428 0%,#020810 70%);
+}
+canvas { display:block;width:100%!important;height:100%!important; }
+
+/* ── Top bar ── */
+#topbar {
+  position:absolute;top:0;left:0;right:0;
+  height:44px;
+  background:rgba(4,12,24,0.88);
+  border-bottom:1px solid rgba(60,130,200,0.2);
+  display:flex;align-items:center;gap:0;
+  z-index:200;
+  backdrop-filter:blur(8px);
+}
+#topbar .logo {
+  padding:0 20px;
+  border-right:1px solid rgba(60,130,200,0.2);
+  font-size:13px;font-weight:700;letter-spacing:3px;
+  color:#4FC3F7;
+  display:flex;align-items:center;gap:8px;
+}
+#topbar .logo span { color:#7dd3fc; font-weight:400; font-size:10px; letter-spacing:1px; }
+#topbar .tabs {
+  display:flex;height:100%;
+}
+.tb-tab {
+  height:100%;padding:0 18px;
+  border:none;border-right:1px solid rgba(60,130,200,0.12);
+  background:transparent;color:#4a6080;
+  font-family:'Courier New',monospace;font-size:11px;letter-spacing:1px;
+  cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;gap:6px;
+}
+.tb-tab:hover { background:rgba(79,195,247,0.06);color:#7dd3fc; }
+.tb-tab.active { background:rgba(79,195,247,0.1);color:#4FC3F7;border-bottom:2px solid #4FC3F7; }
+#topbar .status {
+  margin-left:auto;padding:0 18px;
+  font-size:10px;color:#4a6080;letter-spacing:1px;
+  display:flex;align-items:center;gap:12px;
+}
+.pulse-dot {
+  width:6px;height:6px;border-radius:50%;
+  background:#00e676;
+  animation:pdot 2s ease-in-out infinite;
+}
+@keyframes pdot { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── Left control panel ── */
+#left-panel {
+  position:absolute;top:44px;left:0;bottom:0;
+  width:200px;
+  background:rgba(4,10,22,0.85);
+  border-right:1px solid rgba(60,130,200,0.18);
+  z-index:100;
+  display:flex;flex-direction:column;
+  backdrop-filter:blur(6px);
+}
+.lp-section {
+  border-bottom:1px solid rgba(60,130,200,0.12);
+  padding:10px 12px;
+}
+.lp-title {
+  font-size:9px;letter-spacing:2px;color:#2a4060;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.filter-btn {
+  display:block;width:100%;padding:5px 8px;margin-bottom:4px;
+  background:transparent;border:1px solid rgba(60,130,200,0.2);
+  border-radius:4px;color:#4a6080;font-family:'Courier New',monospace;
+  font-size:10px;cursor:pointer;text-align:left;
+  transition:all .15s;display:flex;align-items:center;gap:6px;
+}
+.filter-btn:hover { border-color:rgba(79,195,247,0.4);color:#7dd3fc;background:rgba(79,195,247,0.05); }
+.filter-btn.active { border-color:#4FC3F7;color:#4FC3F7;background:rgba(79,195,247,0.08); }
+.filter-dot { width:7px;height:7px;border-radius:50%;flex-shrink:0; }
+
+/* ── Track list ── */
+#track-list { flex:1;overflow-y:auto;padding:8px; }
+#track-list::-webkit-scrollbar { width:3px; }
+#track-list::-webkit-scrollbar-thumb { background:rgba(79,195,247,0.2);border-radius:2px; }
+
+.track-item {
+  padding:7px 8px;margin-bottom:4px;
+  background:rgba(10,25,48,0.6);
+  border:1px solid rgba(60,130,200,0.15);
+  border-radius:4px;cursor:pointer;
+  transition:all .15s;
+  border-left:3px solid transparent;
+}
+.track-item:hover { border-color:rgba(79,195,247,0.3);background:rgba(79,195,247,0.05); }
+.track-item.selected { border-left-color:#4FC3F7;background:rgba(79,195,247,0.08); }
+.ti-id { font-size:9px;color:#2a4060;letter-spacing:1px; }
+.ti-label { font-size:11px;color:#7dd3fc;margin:1px 0; }
+.ti-class { font-size:9px;letter-spacing:1px; }
+.ti-class.FRIENDLY { color:#00e676; }
+.ti-class.HOSTILE  { color:#ff4b4b; }
+.ti-class.NEUTRAL  { color:#ffeb3b; }
+.ti-class.UNKNOWN  { color:#9e9e9e; }
+
+/* ── Bottom status bar ── */
+#statusbar {
+  position:absolute;bottom:0;left:200px;right:0;
+  height:28px;background:rgba(4,10,22,0.88);
+  border-top:1px solid rgba(60,130,200,0.18);
+  display:flex;align-items:center;gap:20px;padding:0 14px;
+  font-size:10px;color:#2a4060;letter-spacing:.5px;
+  z-index:200;
+}
+#statusbar span { color:#3a5070; }
+#statusbar .val { color:#4a7090; }
+
+/* ── Thumbnail panels (injected by TacticalTrackLayer) ── */
+/* base styles already set inline; these augment */
+#wrap > div[id^="thumb-"] {
+  pointer-events:none;
+}
+
+/* ── Loader ── */
+#loader {
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;
+  background:#040c18;z-index:999;
+}
+#loader .ring {
+  width:40px;height:40px;
+  border:2px solid #0a1628;border-top-color:#4FC3F7;
+  border-radius:50%;animation:spin .8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+#loader p { color:#2a4060;font-size:11px;letter-spacing:2px; }
+
+/* ── Threat overlay badge ── */
+.threat-badge {
+  display:inline-block;
+  background:rgba(255,75,75,0.12);
+  border:1px solid rgba(255,75,75,0.4);
+  border-radius:3px;padding:1px 6px;
+  font-size:9px;color:#ff4b4b;letter-spacing:1px;
+}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="loader">
+    <div class="ring"></div>
+    <p>INITIALISING TACTICAL LAYER…</p>
+  </div>
+
+  <!-- Top bar -->
+  <div id="topbar">
+    <div class="logo">
+      🛡️ SANKALP <span>TACTICAL COP</span>
+    </div>
+    <div class="tabs">
+      <button class="tb-tab active" onclick="switchTab('tracks',this)">TRACKS</button>
+      <button class="tb-tab" onclick="switchTab('threats',this)">THREATS</button>
+      <button class="tb-tab" onclick="switchTab('all',this)">ALL ASSETS</button>
+    </div>
+    <div class="status">
+      <div class="pulse-dot"></div>
+      <span id="track-count">— TRACKS</span>
+      <span id="clock">—</span>
+    </div>
+  </div>
+
+  <!-- Left panel -->
+  <div id="left-panel">
+    <div class="lp-section">
+      <div class="lp-title">CLASSIFICATION</div>
+      <button class="filter-btn active" data-filter="class" data-val="ALL" onclick="applyFilter('class','ALL',this)">
+        <span class="filter-dot" style="background:#4a6080"></span> ALL
+      </button>
+      <button class="filter-btn" data-filter="class" data-val="FRIENDLY" onclick="applyFilter('class','FRIENDLY',this)">
+        <span class="filter-dot" style="background:#00e676"></span> FRIENDLY
+      </button>
+      <button class="filter-btn" data-filter="class" data-val="HOSTILE" onclick="applyFilter('class','HOSTILE',this)">
+        <span class="filter-dot" style="background:#ff4b4b"></span> HOSTILE
+      </button>
+      <button class="filter-btn" data-filter="class" data-val="NEUTRAL" onclick="applyFilter('class','NEUTRAL',this)">
+        <span class="filter-dot" style="background:#ffeb3b"></span> NEUTRAL
+      </button>
+    </div>
+    <div class="lp-section">
+      <div class="lp-title">BRANCH</div>
+      <button class="filter-btn active" data-filter="branch" data-val="ALL" onclick="applyFilter('branch','ALL',this)">
+        <span class="filter-dot" style="background:#4a6080"></span> ALL BRANCHES
+      </button>
+      <button class="filter-btn" data-filter="branch" data-val="IAF" onclick="applyFilter('branch','IAF',this)">
+        <span class="filter-dot" style="background:#4FC3F7"></span> IAF
+      </button>
+      <button class="filter-btn" data-filter="branch" data-val="ARMY" onclick="applyFilter('branch','ARMY',this)">
+        <span class="filter-dot" style="background:#81C784"></span> ARMY
+      </button>
+      <button class="filter-btn" data-filter="branch" data-val="NAVY" onclick="applyFilter('branch','NAVY',this)">
+        <span class="filter-dot" style="background:#4DB6AC"></span> NAVY
+      </button>
+    </div>
+    <div class="lp-section">
+      <div class="lp-title">TRACKS (<span id="track-list-count">0</span>)</div>
+    </div>
+    <div id="track-list"></div>
+  </div>
+
+  <!-- Globe canvas -->
+  <canvas id="globe-canvas"></canvas>
+
+  <!-- Status bar -->
+  <div id="statusbar">
+    <span>LAT <span class="val" id="sb-lat">—</span></span>
+    <span>LON <span class="val" id="sb-lon">—</span></span>
+    <span>ZOOM <span class="val" id="sb-zoom">—</span></span>
+    <span style="margin-left:auto;">SANKALP TACTICAL v1.0 · THREE.JS r160</span>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+<script>
+// ══════════════════════════════════════════════════════════════════════════════
+// INLINE: TacticalTrackLayer (self-contained for the demo)
+// In production: <script src="sankalp_tactical_layer.js"></script>
+// ══════════════════════════════════════════════════════════════════════════════
+
+const CLASSIF_COLOR = {
+  FRIENDLY:0x00e676, HOSTILE:0xff4b4b, NEUTRAL:0xffeb3b, UNKNOWN:0x9e9e9e
+};
+const CLASSIF_HEX = {
+  FRIENDLY:'#00e676', HOSTILE:'#ff4b4b', NEUTRAL:'#ffeb3b', UNKNOWN:'#9e9e9e'
+};
+const BRANCH_COLOR = { IAF:0x4FC3F7, ARMY:0x81C784, NAVY:0x4DB6AC, UNKNOWN:0x9e9e9e };
+
+function latLonAltToVec3(lat, lon, altM, R) {
+  const altR  = R + (altM / 6371000) * R * 100;
+  const phi   = (90 - lat) * (Math.PI / 180);
+  const theta = (lon + 180) * (Math.PI / 180);
+  return new THREE.Vector3(
+    -altR * Math.sin(phi) * Math.cos(theta),
+     altR * Math.cos(phi),
+     altR * Math.sin(phi) * Math.sin(theta)
+  );
+}
+
+function buildSweepRing(lat, lon, radiusKm, R, color) {
+  const deg = radiusKm / 111.32;
+  const pts = [];
+  for (let i = 0; i <= 80; i++) {
+    const a  = (i / 80) * Math.PI * 2;
+    const la = lat + Math.cos(a) * deg;
+    const lo = lon + Math.sin(a) * deg / Math.cos(lat * Math.PI / 180);
+    pts.push(latLonAltToVec3(la, lo, 0, R + 0.025));
+  }
+  return new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({ color, transparent:true, opacity:0.4 })
+  );
+}
+
+function buildThumbnailPanel(track) {
+  const panel = document.createElement('div');
+  panel.id = `thumb-${track.id}`;
+  const cc = CLASSIF_HEX[track.classification];
+  const bc = ({ IAF:'#4FC3F7', ARMY:'#81C784', NAVY:'#4DB6AC' })[track.branch] || '#9e9e9e';
+  const rb = Math.round(track.readiness || 0);
+  const bc2 = rb >= 60 ? '#00e676' : rb >= 40 ? '#ff9800' : '#ff4b4b';
+  panel.style.cssText = `
+    position:absolute;display:none;width:230px;
+    background:rgba(4,10,24,0.95);
+    border:1px solid ${cc};border-radius:8px;
+    padding:10px 12px;font-family:'Courier New',monospace;
+    font-size:11px;color:#c8e0f4;pointer-events:none;
+    z-index:500;box-shadow:0 6px 28px rgba(0,0,0,0.8);
+    backdrop-filter:blur(10px);
+  `;
+  panel.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="color:${cc};font-weight:700;font-size:11px;letter-spacing:2px">${track.classification}</span>
+      <span style="background:${cc}20;color:${cc};border:1px solid ${cc}44;border-radius:3px;padding:1px 6px;font-size:9px">${track.id}</span>
+    </div>
+    <div style="color:#7dd3fc;font-size:13px;font-weight:700;margin-bottom:2px">${track.label}</div>
+    <div style="color:#4a6080;font-size:10px;margin-bottom:8px">${track.assetType || '—'}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;font-size:10px;margin-bottom:8px">
+      <span style="color:#2a4060">BRANCH</span><span style="color:${bc}">${track.branch}</span>
+      <span style="color:#2a4060">UNIT</span><span>${track.unit || '—'}</span>
+      <span style="color:#2a4060">ALT</span><span>${(track.alt||0).toLocaleString()} m</span>
+      <span style="color:#2a4060">SPEED</span><span>${track.speed||0} km/h</span>
+      <span style="color:#2a4060">HDG</span><span>${(track.heading||0).toFixed(0)}°</span>
+      <span style="color:#2a4060">POS</span><span>${track.lat.toFixed(2)}° ${track.lon.toFixed(2)}°</span>
+    </div>
+    ${track.classification==='FRIENDLY'?`
+    <div style="font-size:9px;color:#2a4060;margin-bottom:3px;letter-spacing:1px">READINESS</div>
+    <div style="background:rgba(255,255,255,0.07);border-radius:3px;height:5px;margin-bottom:4px">
+      <div style="background:${bc2};width:${rb}%;height:5px;border-radius:3px"></div>
+    </div>
+    <div style="font-size:9px;color:#3a5070;text-align:right">${rb}%</div>
+    `:''}
+    ${track.threat?`
+    <div style="border-top:1px solid rgba(255,75,75,0.25);margin-top:6px;padding-top:6px">
+      <span style="color:#ff4b4b;font-size:10px;letter-spacing:1px">⚠ THREAT R: ${track.threatRadiusKm||0}km</span>
+    </div>`:''}
+  `;
+  return panel;
+}
+
+class TacticalTrackLayer {
+  constructor(scene, camera, renderer, R, container) {
+    this.scene=scene; this.camera=camera; this.renderer=renderer;
+    this.R=R; this.container=container||renderer.domElement.parentElement;
+    this._tracks=new Map(); this._radarSweeps=new Map();
+    this._root=new THREE.Group(); this._root.name='TacticalLayer';
+    scene.add(this._root);
+    this._raycaster=new THREE.Raycaster();
+    this._mouse=new THREE.Vector2();
+    this._hoveredId=null; this._selectedId=null;
+    this._clickables=[];
+    this.rotX=0; this.rotY=0;
+    this._onMove=this._onMouseMove.bind(this);
+    this._onClick2=this._onClick.bind(this);
+    renderer.domElement.addEventListener('mousemove',this._onMove);
+    renderer.domElement.addEventListener('click',this._onClick2);
+  }
+
+  loadTracks(arr) { this.clearAll(); arr.forEach(t=>this.addTrack(t)); }
+
+  addTrack(track) {
+    if(this._tracks.has(track.id)) this.removeTrack(track.id);
+    const grp = new THREE.Group(); grp.name=track.id;
+    const pos  = latLonAltToVec3(track.lat,track.lon,track.alt||0,this.R);
+    const col  = CLASSIF_COLOR[track.classification]||0x9e9e9e;
+
+    // Dot
+    const dot = new THREE.Mesh(
+      new THREE.SphereGeometry(track.classification==='HOSTILE'?0.040:0.030,14,14),
+      new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:0.5,shininess:60})
+    );
+    dot.position.copy(pos); dot.userData={trackId:track.id};
+    grp.add(dot); this._clickables.push(dot);
+
+    // Heading arrow
+    if(track.heading!==undefined) {
+      const hdg=(track.heading*Math.PI/180);
+      const deg=2; 
+      const la2=track.lat+Math.cos(hdg)*deg, lo2=track.lon+Math.sin(hdg)*deg;
+      const to=latLonAltToVec3(la2,lo2,track.alt||0,this.R);
+      grp.add(new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([pos.clone(),to]),
+        new THREE.LineBasicMaterial({color:col,transparent:true,opacity:0.7})
+      ));
+    }
+
+    // Trail
+    if(track.history&&track.history.length>1) {
+      const pts=track.history.map(([la,lo])=>latLonAltToVec3(la,lo,track.alt||0,this.R));
+      grp.add(new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(pts),
+        new THREE.LineBasicMaterial({color:col,transparent:true,opacity:0.3})
+      ));
+    }
+
+    // Threat ring
+    let threatRing=null;
+    if(track.classification==='HOSTILE'||track.threat) {
+      threatRing=buildSweepRing(track.lat,track.lon,track.threatRadiusKm||150,this.R,0xff4b4b);
+      grp.add(threatRing);
+    }
+
+    // Radar cone (friendly aircraft)
+    let sweepGrp=null;
+    if(track.classification==='FRIENDLY'&&(track.alt||0)>3000) {
+      sweepGrp=new THREE.Group();
+      const sweepPts=[pos.clone()];
+      const sdeg=60/111.32;
+      for(let i=0;i<=16;i++){
+        const a=((i/16)*0.55-0.275)*Math.PI;
+        sweepPts.push(latLonAltToVec3(track.lat+Math.cos(a)*sdeg,track.lon+Math.sin(a)*sdeg/Math.cos(track.lat*Math.PI/180),track.alt||0,this.R));
+      }
+      sweepPts.push(pos.clone());
+      sweepGrp.add(new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(sweepPts),
+        new THREE.LineBasicMaterial({color:0x00e676,transparent:true,opacity:0.18})
+      ));
+      this._radarSweeps.set(track.id,{grp:sweepGrp,angle:0});
+      grp.add(sweepGrp);
+    }
+
+    // Panel
+    const panel=buildThumbnailPanel(track);
+    this.container.appendChild(panel);
+
+    this._root.add(grp);
+    this._tracks.set(track.id,{data:track,grp,dot,threat:threatRing,sweep:sweepGrp,panel});
+  }
+
+  removeTrack(id) {
+    const t=this._tracks.get(id); if(!t) return;
+    this._root.remove(t.grp); t.panel.remove();
+    this._clickables=this._clickables.filter(m=>m.userData.trackId!==id);
+    this._tracks.delete(id); this._radarSweeps.delete(id);
+  }
+
+  syncRotation(rx,ry) {
+    this.rotX=rx; this.rotY=ry;
+    this._root.rotation.x=rx; this._root.rotation.y=ry;
+  }
+
+  update(t) {
+    this._tracks.forEach((rec,id)=>{
+      if(rec.threat){
+        const p=0.25+0.2*Math.sin(t*2.8);
+        rec.threat.material.opacity=p;
+        const s=1+0.07*Math.sin(t*2.8);
+        rec.threat.scale.setScalar(s);
+      }
+      if(rec.data.classification==='HOSTILE'){
+        rec.dot.material.emissiveIntensity=0.4+0.45*Math.abs(Math.sin(t*3.8));
+      }
+      const sw=this._radarSweeps.get(id);
+      if(sw&&rec.sweep){ sw.angle+=0.018; rec.sweep.rotation.set(0,sw.angle,0); }
+      this._updatePanel(rec);
+    });
+  }
+
+  filterBy({classification,branch}={}) {
+    this._tracks.forEach((rec)=>{
+      let v=true;
+      if(classification&&classification!=='ALL'&&rec.data.classification!==classification) v=false;
+      if(branch&&branch!=='ALL'&&rec.data.branch!==branch) v=false;
+      rec.grp.visible=v;
+      if(!v) rec.panel.style.display='none';
+    });
+  }
+
+  showAll() { this._tracks.forEach(rec=>{ rec.grp.visible=true; }); }
+  clearAll() { [...this._tracks.keys()].forEach(id=>this.removeTrack(id)); }
+
+  _updatePanel(rec) {
+    const panel=rec.panel;
+    if(panel.style.display==='none'&&this._hoveredId!==rec.data.id&&this._selectedId!==rec.data.id) return;
+    const wp=rec.dot.getWorldPosition(new THREE.Vector3());
+    const ndc=wp.clone().project(this.camera);
+    if(ndc.z>1.0){ panel.style.display='none'; return; }
+    const cv=this.renderer.domElement.getBoundingClientRect();
+    const sx=((ndc.x+1)/2)*cv.width+cv.left;
+    const sy=((-ndc.y+1)/2)*cv.height+cv.top;
+    panel.style.left=`${sx+22}px`;
+    panel.style.top=`${Math.max(44,sy-20)}px`;
+  }
+
+  _onMouseMove(e) {
+    const rect=this.renderer.domElement.getBoundingClientRect();
+    this._mouse.x=((e.clientX-rect.left)/rect.width)*2-1;
+    this._mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
+    this._raycaster.setFromCamera(this._mouse,this.camera);
+    const hits=this._raycaster.intersectObjects(this._clickables.filter(m=>m.parent.visible));
+    this._tracks.forEach((rec,id)=>{
+      if(id!==this._selectedId) rec.panel.style.display='none';
+    });
+    if(hits.length){
+      const id=hits[0].object.userData.trackId;
+      const rec=this._tracks.get(id);
+      if(rec){ this._hoveredId=id; rec.panel.style.display='block'; this._updatePanel(rec); }
+      this.renderer.domElement.style.cursor='crosshair';
+    } else {
+      this._hoveredId=null;
+      this.renderer.domElement.style.cursor='';
+    }
+  }
+
+  _onClick(e) {
+    this._raycaster.setFromCamera(this._mouse,this.camera);
+    const hits=this._raycaster.intersectObjects(this._clickables.filter(m=>m.parent.visible));
+    if(hits.length){
+      const id=hits[0].object.userData.trackId;
+      this._selectedId=(this._selectedId===id)?null:id;
+      highlightTrackItem(id,this._selectedId===id);
+    } else {
+      this._selectedId=null;
+      document.querySelectorAll('.track-item').forEach(el=>el.classList.remove('selected'));
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// GLOBE SETUP
+// ══════════════════════════════════════════════════════════════════════════════
+const GLOBE_R = 2.0;
+const canvas  = document.getElementById('globe-canvas');
+const wrap    = document.getElementById('wrap');
+
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(wrap.clientWidth,wrap.clientHeight);
+
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, wrap.clientWidth/wrap.clientHeight, 0.1, 100);
+camera.position.set(0,0,5.5);
+
+// Lighting
+scene.add(new THREE.AmbientLight(0xffffff,0.8));
+const sun=new THREE.DirectionalLight(0xfff5e0,2.2);
+sun.position.set(8,4,6); scene.add(sun);
+
+// Stars
+(function(){
+  const geo=new THREE.BufferGeometry();
+  const pos=new Float32Array(5000*3);
+  for(let i=0;i<pos.length;i++) pos[i]=(Math.random()-.5)*100;
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  scene.add(new THREE.Points(geo,new THREE.PointsMaterial({color:0xffffff,size:0.05})));
+})();
+
+// Earth canvas texture
+function buildEarthTex(){
+  const W=2048,H=1024,cv=document.createElement('canvas');
+  cv.width=W;cv.height=H;const ctx=cv.getContext('2d');
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0a1a3a');g.addColorStop(.5,'#0d2b5e');g.addColorStop(1,'#0a1a3a');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  function land(coords,c){
+    ctx.beginPath();ctx.fillStyle=c;
+    coords.forEach(([la,lo],i)=>{
+      const x=(lo+180)/360*W,y=(90-la)/180*H;
+      i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    });
+    ctx.closePath();ctx.fill();
+  }
+  land([[71,28],[60,5],[45,5],[40,18],[48,40],[68,30]],'#1a3d1a');
+  land([[37,10],[-35,20],[-35,36],[10,45],[20,40],[37,25]],'#1e4820');
+  land([[70,30],[45,38],[25,57],[10,80],[25,97],[45,132],[72,80],[70,45]],'#1a3d1a');
+  land([[37,68],[22,68],[8,77],[8,78],[23,92],[32,97],[37,78]],'#2a5c2a');
+  land([[-15,128],[-38,147],[-34,116]],'#1e4820');
+  land([[70,-140],[40,-70],[8,-77],[20,-105],[65,-168]],'#1a3d1a');
+  land([[10,-73],[-55,-68],[-5,-35],[10,-62]],'#1e4820');
+  land([[-90,-180],[-90,180],[-70,180],[-70,-180]],'#c8d8e8');
+  // Grid
+  ctx.strokeStyle='rgba(50,80,120,0.15)';ctx.lineWidth=.5;
+  for(let la=-60;la<=60;la+=30){ctx.beginPath();ctx.moveTo(0,(90-la)/180*H);ctx.lineTo(W,(90-la)/180*H);ctx.stroke();}
+  for(let lo=-150;lo<=150;lo+=30){ctx.beginPath();ctx.moveTo((lo+180)/360*W,0);ctx.lineTo((lo+180)/360*W,H);ctx.stroke();}
+  return new THREE.CanvasTexture(cv);
+}
+
+const globeMat=new THREE.MeshPhongMaterial({map:buildEarthTex(),shininess:15,specular:new THREE.Color(0x112233)});
+const globe=new THREE.Mesh(new THREE.SphereGeometry(GLOBE_R,72,72),globeMat);
+scene.add(globe);
+
+// Try hi-res texture
+new THREE.TextureLoader().load(
+  'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/land_ocean_ice_cloud_2048.jpg',
+  tex=>{ globeMat.map=tex; globeMat.needsUpdate=true; }
+);
+
+// Atmosphere
+scene.add(new THREE.Mesh(
+  new THREE.SphereGeometry(GLOBE_R*1.03,64,64),
+  new THREE.MeshPhongMaterial({color:0x1a4a8a,transparent:true,opacity:0.07,side:THREE.BackSide})
+));
+
+// Grid lines overlay
+const overlayGrp=new THREE.Group();
+scene.add(overlayGrp);
+(function(){
+  const mat=new THREE.LineBasicMaterial({color:0x1a3060,transparent:true,opacity:0.3});
+  function latLon(la,lo,r){const phi=(90-la)*Math.PI/180,th=(lo+180)*Math.PI/180;return new THREE.Vector3(-r*Math.sin(phi)*Math.cos(th),r*Math.cos(phi),r*Math.sin(phi)*Math.sin(th));}
+  for(let la=-60;la<=60;la+=30){const pts=[];for(let lo=0;lo<=360;lo+=2)pts.push(latLon(la,lo-180,GLOBE_R+.005));overlayGrp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),mat));}
+  for(let lo=0;lo<360;lo+=30){const pts=[];for(let la=-90;la<=90;la+=2)pts.push(latLon(la,lo,GLOBE_R+.005));overlayGrp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),mat));}
+  // India highlight box
+  const hmat=new THREE.LineBasicMaterial({color:0x2a6aff,transparent:true,opacity:0.45});
+  const hpts=[[8,68],[8,97.5],[37.5,97.5],[37.5,68],[8,68]].map(([la,lo])=>latLon(la,lo,GLOBE_R+0.015));
+  overlayGrp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(hpts),hmat));
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TACTICAL LAYER
+// ══════════════════════════════════════════════════════════════════════════════
+const tacticalLayer = new TacticalTrackLayer(scene, camera, renderer, GLOBE_R, wrap);
+
+const SAMPLE_TRACKS = [
+  {
+    id:'TRK-001',label:'IAF-SU30-Alpha',branch:'IAF',classification:'FRIENDLY',
+    lat:31.63,lon:74.87,alt:9000,heading:35,speed:920,readiness:88,
+    assetType:'Su-30MKI',unit:'Tigers',active:true,
+    history:[[31.2,74.3],[31.35,74.5],[31.5,74.68],[31.63,74.87]],threat:false
+  },
+  {
+    id:'TRK-002',label:'IAF-TEJAS-01',branch:'IAF',classification:'FRIENDLY',
+    lat:26.8,lon:75.8,alt:6500,heading:280,speed:780,readiness:72,
+    assetType:'Tejas Mk1A',unit:'Eight Pursoots',active:true,
+    history:[[26.6,76.2],[26.72,75.9],[26.8,75.8]],threat:false
+  },
+  {
+    id:'TRK-003',label:'IAF-P8I-01',branch:'IAF',classification:'FRIENDLY',
+    lat:15.85,lon:74.5,alt:5000,heading:180,speed:490,readiness:93,
+    assetType:'P-8I Poseidon',unit:'Naval Air Arm',active:true,
+    history:[[16.2,74.3],[16.0,74.4],[15.85,74.5]],threat:false
+  },
+  {
+    id:'TRK-004',label:'IN-VIKRANT',branch:'NAVY',classification:'FRIENDLY',
+    lat:18.93,lon:72.84,alt:0,heading:220,speed:28,readiness:91,
+    assetType:'INS Vikrant (Carrier)',unit:'Western Fleet',active:true,
+    history:[[19.1,72.9],[18.93,72.84]],threat:false
+  },
+  {
+    id:'TRK-005',label:'IN-KOLKATA',branch:'NAVY',classification:'FRIENDLY',
+    lat:17.68,lon:83.29,alt:0,heading:90,speed:22,readiness:77,
+    assetType:'INS Kolkata (Destroyer)',unit:'Eastern Fleet',active:true,
+    history:[[17.5,82.9],[17.68,83.29]],threat:false
+  },
+  {
+    id:'TRK-006',label:'ARMY-T90-01',branch:'ARMY',classification:'FRIENDLY',
+    lat:33.5,lon:77.5,alt:0,heading:10,speed:45,readiness:76,
+    assetType:'T-90 Bhishma',unit:'Para SF',active:true,
+    history:[[33.2,77.3],[33.5,77.5]],threat:false
+  },
+  {
+    id:'TRK-H01',label:'HOSTILE-AIR-01',branch:'UNKNOWN',classification:'HOSTILE',
+    lat:34.5,lon:77.2,alt:11000,heading:190,speed:1100,readiness:0,
+    assetType:'Unknown Fast Jet',unit:'UNKNOWN',active:true,
+    history:[[35.2,77.0],[34.9,77.1],[34.5,77.2]],threat:true,threatRadiusKm:250
+  },
+  {
+    id:'TRK-H02',label:'HOSTILE-NAVAL-01',branch:'UNKNOWN',classification:'HOSTILE',
+    lat:23.5,lon:63.8,alt:0,heading:90,speed:35,readiness:0,
+    assetType:'Unknown Destroyer',unit:'UNKNOWN',active:true,
+    history:[[23.4,62.9],[23.5,63.8]],threat:true,threatRadiusKm:180
+  },
+  {
+    id:'TRK-N01',label:'NEUTRAL-CARGO-01',branch:'UNKNOWN',classification:'NEUTRAL',
+    lat:12.0,lon:75.5,alt:0,heading:10,speed:18,readiness:0,
+    assetType:'Merchant Vessel',unit:'Civilian',active:true,
+    history:[[11.6,75.4],[12.0,75.5]],threat:false
+  },
+];
+
+tacticalLayer.loadTracks(SAMPLE_TRACKS);
+buildTrackList(SAMPLE_TRACKS);
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DRAG / ZOOM
+// ══════════════════════════════════════════════════════════════════════════════
+let isDragging=false,prevMouse={x:0,y:0};
+let rotX=0.4, rotY=Math.PI-(80*Math.PI/180);
+let zoom=5.5;
+
+canvas.addEventListener('mousedown',e=>{isDragging=true;prevMouse={x:e.clientX,y:e.clientY};});
+window.addEventListener('mouseup',()=>{ isDragging=false; });
+window.addEventListener('mousemove',e=>{
+  if(!isDragging) return;
+  const dx=e.clientX-prevMouse.x, dy=e.clientY-prevMouse.y;
+  rotY+=dx*.006; rotX+=dy*.006;
+  rotX=Math.max(-1.4,Math.min(1.4,rotX));
+  prevMouse={x:e.clientX,y:e.clientY};
+  // Status bar
+  document.getElementById('sb-lat').textContent=(rotX*(180/Math.PI)).toFixed(1)+'°';
+  document.getElementById('sb-lon').textContent=((rotY-(Math.PI))*(180/Math.PI)).toFixed(1)+'°';
+});
+canvas.addEventListener('wheel',e=>{
+  zoom=Math.max(3.5,Math.min(10,zoom+e.deltaY*.005));
+  document.getElementById('sb-zoom').textContent=zoom.toFixed(1)+'x';
+  e.preventDefault();
+},{passive:false});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RENDER LOOP
+// ══════════════════════════════════════════════════════════════════════════════
+const clock=new THREE.Clock();
+let elapsed=0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  elapsed+=clock.getDelta();
+
+  if(!isDragging) rotY+=0.0006;
+
+  globe.rotation.x        = rotX;
+  globe.rotation.y        = rotY;
+  overlayGrp.rotation.x  = rotX;
+  overlayGrp.rotation.y  = rotY;
+
+  tacticalLayer.syncRotation(rotX, rotY);
+  tacticalLayer.update(elapsed);
+
+  camera.position.z=zoom;
+  renderer.render(scene, camera);
+
+  // Clock
+  const now=new Date();
+  document.getElementById('clock').textContent=
+    now.toUTCString().split(' ')[4]+' UTC';
+}
+
+window.addEventListener('resize',()=>{
+  const w=wrap.clientWidth,h=wrap.clientHeight;
+  camera.aspect=w/h; camera.updateProjectionMatrix();
+  renderer.setSize(w,h);
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// UI — Track list
+// ══════════════════════════════════════════════════════════════════════════════
+function buildTrackList(tracks) {
+  const list=document.getElementById('track-list');
+  list.innerHTML='';
+  document.getElementById('track-list-count').textContent=tracks.length;
+  document.getElementById('track-count').textContent=tracks.length+' TRACKS';
+  tracks.forEach(t=>{
+    const div=document.createElement('div');
+    div.className='track-item';
+    div.id=`ti-${t.id}`;
+    const cc=CLASSIF_HEX[t.classification];
+    div.innerHTML=`
+      <div class="ti-id">${t.id}</div>
+      <div class="ti-label">${t.label}</div>
+      <div class="ti-class ${t.classification}" style="color:${cc}">${t.classification}</div>
+    `;
+    div.addEventListener('click',()=>{
+      document.querySelectorAll('.track-item').forEach(el=>el.classList.remove('selected'));
+      div.classList.add('selected');
+      // Show that track's panel
+      const rec=tacticalLayer._tracks.get(t.id);
+      if(rec){
+        tacticalLayer._selectedId=t.id;
+        rec.panel.style.display='block';
+        tacticalLayer._updatePanel(rec);
+      }
+    });
+    list.appendChild(div);
+  });
+}
+
+function highlightTrackItem(id, sel) {
+  document.querySelectorAll('.track-item').forEach(el=>el.classList.remove('selected'));
+  if(sel) document.getElementById(`ti-${id}`)?.classList.add('selected');
+}
+
+// ── Tab / filter logic ────────────────────────────────────────────────────────
+let currentClass='ALL', currentBranch='ALL';
+
+function applyFilter(type, val, btn) {
+  const group=document.querySelectorAll(`[data-filter="${type}"]`);
+  group.forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(type==='class') currentClass=val;
+  if(type==='branch') currentBranch=val;
+  tacticalLayer.filterBy({classification:currentClass, branch:currentBranch});
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tb-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(tab==='threats'){
+    tacticalLayer.filterBy({classification:'HOSTILE'});
+    currentClass='HOSTILE'; currentBranch='ALL';
+  } else if(tab==='all'){
+    tacticalLayer.showAll(); currentClass='ALL'; currentBranch='ALL';
+  } else {
+    tacticalLayer.showAll(); currentClass='ALL'; currentBranch='ALL';
+  }
+  // Reset filter buttons
+  document.querySelectorAll('.filter-btn').forEach(b=>{
+    if(b.dataset.val==='ALL') b.classList.add('active');
+    else b.classList.remove('active');
+  });
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+animate();
+document.getElementById('sb-zoom').textContent=zoom.toFixed(1)+'x';
+setTimeout(()=>{ document.getElementById('loader').style.display='none'; },600);
+</script>
+</body>
+</html>

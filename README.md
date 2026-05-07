@@ -2,6 +2,12 @@
 
 > **संकल्प** (Sankalp) — *"A solemn resolve"*  
 > "Ontology as Digital Twin" for Indian Defence (DRDO / IAF / Army / Navy).
+> A military-grade tactical track/overlay system with:
+> - Live entity tracks with trails
+> - Threat classification (hostile/neutral/friendly)
+> - Track thumbnails with metadata panels
+> - Radar sweep animations
+> - Target lock indicators
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue)](https://python.org)
 [![Neo4j](https://img.shields.io/badge/Neo4j-5.x-green)](https://neo4j.com)
@@ -10,8 +16,6 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
-
-
 
 ## 🧠 Architecture — 5 Core Agents
 

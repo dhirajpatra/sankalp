@@ -1,713 +1,759 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SANKALP – 3D Defence Globe</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SANKALP – 3D Defence Globe</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  body {
-    background: #05080f;
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-  }
+    body {
+      background: #05080f;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
 
-  #canvas-wrap {
-    position: relative;
-    width: 100%;
-    height: 660px;
-    background: radial-gradient(ellipse at 50% 40%, #0a1628 0%, #05080f 70%);
-  }
+    #canvas-wrap {
+      position: relative;
+      width: 100%;
+      height: 660px;
+      background: radial-gradient(ellipse at 50% 40%, #0a1628 0%, #05080f 70%);
+    }
 
-  canvas { display: block; width: 100% !important; height: 100% !important; }
+    canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
 
-  /* ── Tooltip ──────────────────────────────────────────────────────────── */
-  #tooltip {
-    position: absolute;
-    display: none;
-    background: rgba(8, 16, 32, 0.92);
-    border: 1px solid rgba(100, 180, 255, 0.3);
-    border-radius: 8px;
-    padding: 10px 14px;
-    color: #e8f4ff;
-    font-size: 12px;
-    line-height: 1.7;
-    pointer-events: none;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.6);
-    backdrop-filter: blur(8px);
-    max-width: 220px;
-    z-index: 100;
-  }
-  #tooltip .tt-id   { font-weight: 700; font-size: 13px; color: #7dd3fc; }
-  #tooltip .tt-stat { font-weight: 600; }
-  #tooltip .op   { color: #00e676; }
-  #tooltip .watch{ color: #ff9800; }
-  #tooltip .crit { color: #ff4b4b; }
+    /* ── Tooltip ──────────────────────────────────────────────────────────── */
+    #tooltip {
+      position: absolute;
+      display: none;
+      background: rgba(8, 16, 32, 0.92);
+      border: 1px solid rgba(100, 180, 255, 0.3);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #e8f4ff;
+      font-size: 12px;
+      line-height: 1.7;
+      pointer-events: none;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      max-width: 220px;
+      z-index: 100;
+    }
 
-  /* ── HUD / controls ───────────────────────────────────────────────────── */
-  #hud {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    z-index: 10;
-  }
+    #tooltip .tt-id {
+      font-weight: 700;
+      font-size: 13px;
+      color: #7dd3fc;
+    }
 
-  .hud-btn {
-    background: rgba(20, 40, 80, 0.75);
-    border: 1px solid rgba(100, 160, 255, 0.25);
-    border-radius: 6px;
-    color: #a8d8ff;
-    padding: 5px 11px;
-    font-size: 11px;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
-    backdrop-filter: blur(6px);
-  }
-  .hud-btn:hover, .hud-btn.active {
-    background: rgba(40, 80, 160, 0.85);
-    border-color: rgba(100, 180, 255, 0.6);
-    color: #ffffff;
-  }
+    #tooltip .tt-stat {
+      font-weight: 600;
+    }
 
-  #filter-bar {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    display: flex;
-    gap: 6px;
-    z-index: 10;
-  }
+    #tooltip .op {
+      color: #00e676;
+    }
 
-  /* ── Cache status badge ───────────────────────────────────────────────── */
-  #cache-badge {
-    position: absolute;
-    bottom: 10px;
-    right: 12px;
-    font-size: 10px;
-    color: #4a6080;
-    letter-spacing: 0.4px;
-    z-index: 10;
-  }
-  #cache-badge span { color: #48bb78; }
+    #tooltip .watch {
+      color: #ff9800;
+    }
 
-  /* ── Loading overlay ──────────────────────────────────────────────────── */
-  #loader {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 12px;
-    background: #05080f;
-    z-index: 200;
-  }
-  #loader .ring {
-    width: 44px; height: 44px;
-    border: 3px solid #0a1628;
-    border-top-color: #4FC3F7;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  #loader p { color: #4a6080; font-size: 12px; letter-spacing: 1px; }
-</style>
+    #tooltip .crit {
+      color: #ff4b4b;
+    }
+
+    /* ── HUD / controls ───────────────────────────────────────────────────── */
+    #hud {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    .hud-btn {
+      background: rgba(20, 40, 80, 0.75);
+      border: 1px solid rgba(100, 160, 255, 0.25);
+      border-radius: 6px;
+      color: #a8d8ff;
+      padding: 5px 11px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      backdrop-filter: blur(6px);
+    }
+
+    .hud-btn:hover,
+    .hud-btn.active {
+      background: rgba(40, 80, 160, 0.85);
+      border-color: rgba(100, 180, 255, 0.6);
+      color: #ffffff;
+    }
+
+    #filter-bar {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    /* ── Cache status badge ───────────────────────────────────────────────── */
+    #cache-badge {
+      position: absolute;
+      bottom: 10px;
+      right: 12px;
+      font-size: 10px;
+      color: #4a6080;
+      letter-spacing: 0.4px;
+      z-index: 10;
+    }
+
+    #cache-badge span {
+      color: #48bb78;
+    }
+
+    /* ── Loading overlay ──────────────────────────────────────────────────── */
+    #loader {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      background: #05080f;
+      z-index: 200;
+    }
+
+    #loader .ring {
+      width: 44px;
+      height: 44px;
+      border: 3px solid #0a1628;
+      border-top-color: #4FC3F7;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #loader p {
+      color: #4a6080;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+  </style>
 </head>
+
 <body>
 
-<div id="canvas-wrap">
-  <div id="loader">
-    <div class="ring"></div>
-    <p>LOADING GLOBE…</p>
+  <div id="canvas-wrap">
+    <div id="loader">
+      <div class="ring"></div>
+      <p>LOADING GLOBE…</p>
+    </div>
+
+    <canvas id="globe-canvas"></canvas>
+
+    <!-- HUD filter buttons -->
+    <div id="hud">
+      <button class="hud-btn active" data-branch="All" onclick="setBranch(this)">All Branches</button>
+      <button class="hud-btn" data-branch="IAF" onclick="setBranch(this)">✈️ IAF</button>
+      <button class="hud-btn" data-branch="Army" onclick="setBranch(this)">🪖 Army</button>
+      <button class="hud-btn" data-branch="Navy" onclick="setBranch(this)">⚓ Navy</button>
+    </div>
+
+    <div id="filter-bar">
+      <button class="hud-btn active" data-status="All" onclick="setStatus(this)">All</button>
+      <button class="hud-btn" data-status="operational" onclick="setStatus(this)">🟢 Op</button>
+      <button class="hud-btn" data-status="watch" onclick="setStatus(this)">🟡 Watch</button>
+      <button class="hud-btn" data-status="critical" onclick="setStatus(this)">🔴 Crit</button>
+    </div>
+
+    <div id="tooltip"></div>
+    <div id="cache-badge">IndexedDB: <span id="cache-status">—</span></div>
   </div>
 
-  <canvas id="globe-canvas"></canvas>
+  <!-- Three.js r160 from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
 
-  <!-- HUD filter buttons -->
-  <div id="hud">
-    <button class="hud-btn active" data-branch="All"  onclick="setBranch(this)">All Branches</button>
-    <button class="hud-btn"        data-branch="IAF"  onclick="setBranch(this)">✈️ IAF</button>
-    <button class="hud-btn"        data-branch="Army" onclick="setBranch(this)">🪖 Army</button>
-    <button class="hud-btn"        data-branch="Navy" onclick="setBranch(this)">⚓ Navy</button>
-  </div>
+  <script>
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // 1. PYTHON-INJECTED DATA
+    // ═══════════════════════════════════════════════════════════════════════════════
+    const PYTHON_ASSETS = __ASSETS_JSON__;
+    const THRESHOLD = __THRESHOLD__;
+    const FORCE_REFRESH = __FORCE_REFRESH__;
 
-  <div id="filter-bar">
-    <button class="hud-btn active" data-status="All"         onclick="setStatus(this)">All</button>
-    <button class="hud-btn"        data-status="operational" onclick="setStatus(this)">🟢 Op</button>
-    <button class="hud-btn"        data-status="watch"       onclick="setStatus(this)">🟡 Watch</button>
-    <button class="hud-btn"        data-status="critical"    onclick="setStatus(this)">🔴 Crit</button>
-  </div>
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // 2. INDEXEDDB — cache layer
+    //    Schema: DB "sankalp_geo" → store "assets" → key "payload"
+    //    { data: [...], ts: timestamp, threshold: N }
+    // ═══════════════════════════════════════════════════════════════════════════════
+    const DB_NAME = "sankalp_geo";
+    const DB_VERSION = 2;
+    const STORE = "assets";
+    const CACHE_KEY = "payload";
+    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-  <div id="tooltip"></div>
-  <div id="cache-badge">IndexedDB: <span id="cache-status">—</span></div>
-</div>
+    let db = null;
 
-<!-- Three.js r160 from CDN -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = e => {
+          const d = e.target.result;
+          if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE);
+        };
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror = e => reject(e.target.error);
+      });
+    }
 
-<script>
-// ═══════════════════════════════════════════════════════════════════════════════
-// 1. PYTHON-INJECTED DATA
-// ═══════════════════════════════════════════════════════════════════════════════
-const PYTHON_ASSETS   = __ASSETS_JSON__;
-const THRESHOLD       = __THRESHOLD__;
-const FORCE_REFRESH   = __FORCE_REFRESH__;
+    function dbGet(key) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, "readonly");
+        const req = tx.objectStore(STORE).get(key);
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror = e => reject(e.target.error);
+      });
+    }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 2. INDEXEDDB — cache layer
-//    Schema: DB "sankalp_geo" → store "assets" → key "payload"
-//    { data: [...], ts: timestamp, threshold: N }
-// ═══════════════════════════════════════════════════════════════════════════════
-const DB_NAME    = "sankalp_geo";
-const DB_VERSION = 2;
-const STORE      = "assets";
-const CACHE_KEY  = "payload";
-const CACHE_TTL  = 5 * 60 * 1000; // 5 minutes
+    function dbPut(key, value) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, "readwrite");
+        const req = tx.objectStore(STORE).put(value, key);
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror = e => reject(e.target.error);
+      });
+    }
 
-let db = null;
+    async function resolveAssets() {
+      db = await openDB();
+      const now = Date.now();
 
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = e => {
-      const d = e.target.result;
-      if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE);
-    };
-    req.onsuccess = e => resolve(e.target.result);
-    req.onerror   = e => reject(e.target.error);
-  });
-}
-
-function dbGet(key) {
-  return new Promise((resolve, reject) => {
-    const tx  = db.transaction(STORE, "readonly");
-    const req = tx.objectStore(STORE).get(key);
-    req.onsuccess = e => resolve(e.target.result);
-    req.onerror   = e => reject(e.target.error);
-  });
-}
-
-function dbPut(key, value) {
-  return new Promise((resolve, reject) => {
-    const tx  = db.transaction(STORE, "readwrite");
-    const req = tx.objectStore(STORE).put(value, key);
-    req.onsuccess = e => resolve(e.target.result);
-    req.onerror   = e => reject(e.target.error);
-  });
-}
-
-async function resolveAssets() {
-  db = await openDB();
-  const now = Date.now();
-
-  if (!FORCE_REFRESH) {
-    try {
-      const cached = await dbGet(CACHE_KEY);
-      if (cached && (now - cached.ts) < CACHE_TTL && cached.threshold === THRESHOLD) {
-        document.getElementById("cache-status").textContent = "HIT ✓";
-        return cached.data;
+      if (!FORCE_REFRESH) {
+        try {
+          const cached = await dbGet(CACHE_KEY);
+          if (cached && (now - cached.ts) < CACHE_TTL && cached.threshold === THRESHOLD) {
+            document.getElementById("cache-status").textContent = "HIT ✓";
+            return cached.data;
+          }
+        } catch (_) { }
       }
-    } catch(_) {}
-  }
 
-  // Fresh data from Python
-  const payload = { data: PYTHON_ASSETS, ts: now, threshold: THRESHOLD };
-  try {
-    await dbPut(CACHE_KEY, payload);
-    document.getElementById("cache-status").textContent = "WRITTEN ✓";
-  } catch(_) {
-    document.getElementById("cache-status").textContent = "NO-CACHE";
-  }
-  return PYTHON_ASSETS;
-}
+      // Fresh data from Python
+      const payload = { data: PYTHON_ASSETS, ts: now, threshold: THRESHOLD };
+      try {
+        await dbPut(CACHE_KEY, payload);
+        document.getElementById("cache-status").textContent = "WRITTEN ✓";
+      } catch (_) {
+        document.getElementById("cache-status").textContent = "NO-CACHE";
+      }
+      return PYTHON_ASSETS;
+    }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 3. GEO HELPERS
-// ═══════════════════════════════════════════════════════════════════════════════
-const GLOBE_R = 2.0;
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // 3. GEO HELPERS
+    // ═══════════════════════════════════════════════════════════════════════════════
+    const GLOBE_R = 2.0;
 
-function latLonToVec3(lat, lon, r) {
-  const phi   = (90 - lat) * (Math.PI / 180);
-  const theta = (lon + 180) * (Math.PI / 180);
-  return new THREE.Vector3(
-    -r * Math.sin(phi) * Math.cos(theta),
-     r * Math.cos(phi),
-     r * Math.sin(phi) * Math.sin(theta)
-  );
-}
+    function latLonToVec3(lat, lon, r) {
+      const phi = (90 - lat) * (Math.PI / 180);
+      const theta = (lon + 180) * (Math.PI / 180);
+      return new THREE.Vector3(
+        -r * Math.sin(phi) * Math.cos(theta),
+        r * Math.cos(phi),
+        r * Math.sin(phi) * Math.sin(theta)
+      );
+    }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 4. COLOUR MAPS
-// ═══════════════════════════════════════════════════════════════════════════════
-const STATUS_COLOR = {
-  operational: 0x00e676,
-  watch:       0xff9800,
-  critical:    0xff4b4b,
-};
-const BRANCH_EMISSIVE = {
-  IAF:   0x1565c0,
-  Army:  0x2e7d32,
-  Navy:  0x00695c,
-};
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // 4. COLOUR MAPS
+    // ═══════════════════════════════════════════════════════════════════════════════
+    const STATUS_COLOR = {
+      operational: 0x00e676,
+      watch: 0xff9800,
+      critical: 0xff4b4b,
+    };
+    const BRANCH_EMISSIVE = {
+      IAF: 0x1565c0,
+      Army: 0x2e7d32,
+      Navy: 0x00695c,
+    };
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 5. THREE.JS SETUP
-// ═══════════════════════════════════════════════════════════════════════════════
-const canvas = document.getElementById("globe-canvas");
-const wrap   = document.getElementById("canvas-wrap");
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // 5. THREE.JS SETUP
+    // ═══════════════════════════════════════════════════════════════════════════════
+    const canvas = document.getElementById("globe-canvas");
+    const wrap = document.getElementById("canvas-wrap");
 
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(wrap.clientWidth, wrap.clientHeight);
-renderer.toneMapping       = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
 
-const scene  = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(45, wrap.clientWidth / wrap.clientHeight, 0.1, 100);
-camera.position.set(0, 0, 6);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, wrap.clientWidth / wrap.clientHeight, 0.1, 100);
+    camera.position.set(0, 0, 6);
 
-// ── Lighting ──────────────────────────────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0xffffff, 0.9));   // bright ambient for texture visibility
-const sun = new THREE.DirectionalLight(0xfff5e0, 2.2);
-sun.position.set(8, 4, 6);
-scene.add(sun);
-const fillLight = new THREE.DirectionalLight(0x4488bb, 0.4);
-fillLight.position.set(-5, -2, -5);
-scene.add(fillLight);
+    // ── Lighting ──────────────────────────────────────────────────────────────────
+    scene.add(new THREE.AmbientLight(0xffffff, 0.9));   // bright ambient for texture visibility
+    const sun = new THREE.DirectionalLight(0xfff5e0, 2.2);
+    sun.position.set(8, 4, 6);
+    scene.add(sun);
+    const fillLight = new THREE.DirectionalLight(0x4488bb, 0.4);
+    fillLight.position.set(-5, -2, -5);
+    scene.add(fillLight);
 
-// ── Star field ────────────────────────────────────────────────────────────────
-(function buildStars() {
-  const geo = new THREE.BufferGeometry();
-  const n   = 4000;
-  const pos = new Float32Array(n * 3);
-  for (let i = 0; i < n * 3; i++) pos[i] = (Math.random() - 0.5) * 100;
-  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({
-    color: 0xffffff, size: 0.06, sizeAttenuation: true,
-  })));
-})();
+    // ── Star field ────────────────────────────────────────────────────────────────
+    (function buildStars() {
+      const geo = new THREE.BufferGeometry();
+      const n = 4000;
+      const pos = new Float32Array(n * 3);
+      for (let i = 0; i < n * 3; i++) pos[i] = (Math.random() - 0.5) * 100;
+      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      scene.add(new THREE.Points(geo, new THREE.PointsMaterial({
+        color: 0xffffff, size: 0.06, sizeAttenuation: true,
+      })));
+    })();
 
-// ── Earth texture — canvas fallback (always works offline) ────────────────────
-function buildCanvasEarthTexture() {
-  const W = 2048, H = 1024;
-  const cv = document.createElement('canvas');
-  cv.width = W; cv.height = H;
-  const ctx = cv.getContext('2d');
+    // ── Earth texture — canvas fallback (always works offline) ────────────────────
+    function buildCanvasEarthTexture() {
+      const W = 2048, H = 1024;
+      const cv = document.createElement('canvas');
+      cv.width = W; cv.height = H;
+      const ctx = cv.getContext('2d');
 
-  // Ocean gradient
-  const oceanGrad = ctx.createLinearGradient(0, 0, 0, H);
-  oceanGrad.addColorStop(0,    '#0a1a3a');
-  oceanGrad.addColorStop(0.35, '#0d2b5e');
-  oceanGrad.addColorStop(0.5,  '#0f3670');
-  oceanGrad.addColorStop(0.65, '#0d2b5e');
-  oceanGrad.addColorStop(1,    '#0a1a3a');
-  ctx.fillStyle = oceanGrad;
-  ctx.fillRect(0, 0, W, H);
+      // Ocean gradient
+      const oceanGrad = ctx.createLinearGradient(0, 0, 0, H);
+      oceanGrad.addColorStop(0, '#0a1a3a');
+      oceanGrad.addColorStop(0.35, '#0d2b5e');
+      oceanGrad.addColorStop(0.5, '#0f3670');
+      oceanGrad.addColorStop(0.65, '#0d2b5e');
+      oceanGrad.addColorStop(1, '#0a1a3a');
+      ctx.fillStyle = oceanGrad;
+      ctx.fillRect(0, 0, W, H);
 
-  // Helper: draw a land polygon from [lat,lon] pairs (equirectangular projection)
-  function land(coords, color) {
-    ctx.beginPath();
-    ctx.fillStyle = color;
-    coords.forEach(([lat, lon], i) => {
-      const x = (lon + 180) / 360 * W;
-      const y = (90 - lat)  / 180 * H;
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      // Helper: draw a land polygon from [lat,lon] pairs (equirectangular projection)
+      function land(coords, color) {
+        ctx.beginPath();
+        ctx.fillStyle = color;
+        coords.forEach(([lat, lon], i) => {
+          const x = (lon + 180) / 360 * W;
+          const y = (90 - lat) / 180 * H;
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      const LAND = '#1a3d1a';
+      const LAND2 = '#1e4820';
+      const DESERT = '#3d3020';
+      const ICE = '#c8d8e8';
+
+      // ── Major land masses (simplified polygons) ───────────────────────────────
+      // Europe
+      land([[71, 28], [69, 18], [65, 14], [60, 5], [55, 5], [50, 3], [45, 5], [40, 18], [42, 28], [48, 40], [55, 38], [62, 30], [68, 30]], LAND);
+      // Africa
+      land([[37, 10], [35, -5], [30, -18], [10, -18], [-5, -5], [-35, 20], [-35, 30], [-20, 36], [-5, 40], [10, 45], [20, 40], [37, 37], [37, 25]], LAND2);
+      // Asia mainland
+      land([[70, 30], [60, 28], [55, 38], [45, 38], [40, 45], [35, 42], [30, 50], [25, 57], [20, 60], [15, 75], [8, 77], [10, 80], [20, 88], [25, 90], [25, 97], [30, 100], [35, 110], [45, 132], [50, 140], [55, 135], [60, 130], [65, 140], [70, 132], [72, 120], [72, 80], [70, 60], [68, 55], [70, 45], [72, 38], [70, 30]], LAND);
+      // India
+      land([[37, 68], [37, 78], [35, 77], [32, 78], [28, 97], [23, 92], [22, 88], [20, 86], [16, 82], [12, 80], [8, 77], [8, 78], [10, 76], [8, 77], [10, 73], [18, 72], [22, 68], [27, 66], [28, 64], [32, 66], [37, 68]], '#2a5c2a');
+      // Southeast Asia
+      land([[25, 97], [22, 98], [20, 100], [18, 104], [15, 107], [10, 107], [5, 103], [2, 104], [5, 108], [10, 108], [15, 108], [20, 106], [25, 100]], LAND);
+      // Indonesia (simplified)
+      land([[-8, 95], [-5, 105], [0, 108], [-1, 116], [-8, 115], [-9, 118], [-5, 122], [-8, 127], [-8, 115], [-8, 105], [-8, 95]], LAND2);
+      // Australia
+      land([[-15, 128], [-12, 136], [-15, 142], [-28, 153], [-38, 147], [-38, 140], [-34, 116], [-22, 114], [-15, 128]], LAND2);
+      // North America
+      land([[70, -140], [70, -90], [60, -65], [50, -55], [45, -65], [40, -70], [35, -75], [28, -80], [25, -90], [20, -88], [15, -85], [10, -83], [8, -77], [8, -78], [20, -105], [30, -110], [32, -117], [38, -122], [50, -125], [55, -130], [65, -168], [70, -160], [70, -140]], LAND);
+      // South America
+      land([[10, -73], [8, -60], [5, -52], [0, -50], [-10, -38], [-20, -40], [-35, -57], [-55, -68], [-55, -65], [-40, -62], [-25, -48], [-5, -35], [5, -52], [8, -60], [10, -62], [12, -70], [8, -77]], LAND2);
+      // Greenland
+      land([[60, -42], [62, -52], [70, -52], [76, -68], [84, -30], [80, -18], [74, -22], [66, -34], [60, -42]], ICE);
+      // Antarctica
+      land([[-90, -180], [-90, 180], [-70, 180], [-68, 0], [-70, -180]], ICE);
+      // Arctic ice cap
+      land([[90, -180], [90, 180], [78, 180], [72, 90], [70, 0], [72, -90], [78, -180]], ICE);
+
+      // ── Country border lines for key regions ──────────────────────────────────
+      ctx.strokeStyle = 'rgba(100,180,100,0.25)';
+      ctx.lineWidth = 1.5;
+      // India rough border outline
+      ctx.beginPath();
+      [[37, 68], [32, 66], [28, 64], [27, 70], [24, 68], [23, 70], [22, 68], [20, 73], [14, 74], [10, 76], [8, 78],
+      [8, 77], [9, 77], [10, 80], [13, 80], [16, 82], [18, 83], [20, 86], [22, 88], [23, 92], [24, 94], [26, 92],
+      [26, 97], [28, 97], [30, 97], [32, 97], [34, 78], [35, 77], [37, 78], [37, 68]].forEach(([lat, lon], i) => {
+        const x = (lon + 180) / 360 * W, y = (90 - lat) / 180 * H;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.strokeStyle = 'rgba(180,220,180,0.5)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Ocean grid lines (subtle)
+      ctx.strokeStyle = 'rgba(50,80,120,0.15)';
+      ctx.lineWidth = 0.5;
+      for (let lat = -60; lat <= 60; lat += 30) {
+        ctx.beginPath();
+        ctx.moveTo(0, (90 - lat) / 180 * H);
+        ctx.lineTo(W, (90 - lat) / 180 * H);
+        ctx.stroke();
+      }
+      for (let lon = -150; lon <= 150; lon += 30) {
+        ctx.beginPath();
+        ctx.moveTo((lon + 180) / 360 * W, 0);
+        ctx.lineTo((lon + 180) / 360 * W, H);
+        ctx.stroke();
+      }
+
+      return new THREE.CanvasTexture(cv);
+    }
+
+    // ── Globe sphere ──────────────────────────────────────────────────────────────
+    const globeGeo = new THREE.SphereGeometry(GLOBE_R, 72, 72);
+    const globeMat = new THREE.MeshPhongMaterial({
+      map: buildCanvasEarthTexture(),  // canvas fallback — immediate
+      shininess: 20,
+      specular: new THREE.Color(0x224466),
     });
-    ctx.closePath();
-    ctx.fill();
-  }
+    const globe = new THREE.Mesh(globeGeo, globeMat);
+    scene.add(globe);
 
-  const LAND   = '#1a3d1a';
-  const LAND2  = '#1e4820';
-  const DESERT = '#3d3020';
-  const ICE    = '#c8d8e8';
+    // ── Try to upgrade to hi-res CDN texture (better detail) ─────────────────────
+    // raw.githubusercontent.com serves CORS: Access-Control-Allow-Origin: *
+    const TEXTURE_URLS = [
+      'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/land_ocean_ice_cloud_2048.jpg',
+      'https://threejs.org/examples/textures/land_ocean_ice_cloud_2048.jpg',
+    ];
+    (function loadHiResTexture(idx) {
+      if (idx >= TEXTURE_URLS.length) return;  // canvas fallback already active
+      const loader = new THREE.TextureLoader();
+      loader.crossOrigin = 'anonymous';
+      loader.load(
+        TEXTURE_URLS[idx],
+        (tex) => {
+          globeMat.map = tex;
+          globeMat.needsUpdate = true;
+        },
+        undefined,
+        () => loadHiResTexture(idx + 1)  // try next URL on error
+      );
+    })(0);
 
-  // ── Major land masses (simplified polygons) ───────────────────────────────
-  // Europe
-  land([[71,28],[69,18],[65,14],[60,5],[55,5],[50,3],[45,5],[40,18],[42,28],[48,40],[55,38],[62,30],[68,30]], LAND);
-  // Africa
-  land([[37,10],[35,-5],[30,-18],[10,-18],[-5,-5],[-35,20],[-35,30],[-20,36],[-5,40],[10,45],[20,40],[37,37],[37,25]], LAND2);
-  // Asia mainland
-  land([[70,30],[60,28],[55,38],[45,38],[40,45],[35,42],[30,50],[25,57],[20,60],[15,75],[8,77],[10,80],[20,88],[25,90],[25,97],[30,100],[35,110],[45,132],[50,140],[55,135],[60,130],[65,140],[70,132],[72,120],[72,80],[70,60],[68,55],[70,45],[72,38],[70,30]], LAND);
-  // India
-  land([[37,68],[37,78],[35,77],[32,78],[28,97],[23,92],[22,88],[20,86],[16,82],[12,80],[8,77],[8,78],[10,76],[8,77],[10,73],[18,72],[22,68],[27,66],[28,64],[32,66],[37,68]], '#2a5c2a');
-  // Southeast Asia
-  land([[25,97],[22,98],[20,100],[18,104],[15,107],[10,107],[5,103],[2,104],[5,108],[10,108],[15,108],[20,106],[25,100]], LAND);
-  // Indonesia (simplified)
-  land([[-8,95],[-5,105],[0,108],[-1,116],[-8,115],[-9,118],[-5,122],[-8,127],[-8,115],[-8,105],[-8,95]], LAND2);
-  // Australia
-  land([[-15,128],[-12,136],[-15,142],[-28,153],[-38,147],[-38,140],[-34,116],[-22,114],[-15,128]], LAND2);
-  // North America
-  land([[70,-140],[70,-90],[60,-65],[50,-55],[45,-65],[40,-70],[35,-75],[28,-80],[25,-90],[20,-88],[15,-85],[10,-83],[8,-77],[8,-78],[20,-105],[30,-110],[32,-117],[38,-122],[50,-125],[55,-130],[65,-168],[70,-160],[70,-140]], LAND);
-  // South America
-  land([[10,-73],[8,-60],[5,-52],[0,-50],[-10,-38],[-20,-40],[-35,-57],[-55,-68],[-55,-65],[-40,-62],[-25,-48],[-5,-35],[5,-52],[8,-60],[10,-62],[12,-70],[8,-77]], LAND2);
-  // Greenland
-  land([[60,-42],[62,-52],[70,-52],[76,-68],[84,-30],[80,-18],[74,-22],[66,-34],[60,-42]], ICE);
-  // Antarctica
-  land([[-90,-180],[-90,180],[-70,180],[-68,0],[-70,-180]], ICE);
-  // Arctic ice cap
-  land([[90,-180],[90,180],[78,180],[72,90],[70,0],[72,-90],[78,-180]], ICE);
+    // ── Atmosphere glow ───────────────────────────────────────────────────────────
+    const atmoGeo = new THREE.SphereGeometry(GLOBE_R * 1.03, 64, 64);
+    const atmoMat = new THREE.MeshPhongMaterial({
+      color: 0x1a4a8a,
+      transparent: true,
+      opacity: 0.08,
+      side: THREE.BackSide,
+    });
+    scene.add(new THREE.Mesh(atmoGeo, atmoMat));
 
-  // ── Country border lines for key regions ──────────────────────────────────
-  ctx.strokeStyle = 'rgba(100,180,100,0.25)';
-  ctx.lineWidth   = 1.5;
-  // India rough border outline
-  ctx.beginPath();
-  [[37,68],[32,66],[28,64],[27,70],[24,68],[23,70],[22,68],[20,73],[14,74],[10,76],[8,78],
-   [8,77],[9,77],[10,80],[13,80],[16,82],[18,83],[20,86],[22,88],[23,92],[24,94],[26,92],
-   [26,97],[28,97],[30,97],[32,97],[34,78],[35,77],[37,78],[37,68]].forEach(([lat,lon],i)=>{
-    const x=(lon+180)/360*W, y=(90-lat)/180*H;
-    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-  });
-  ctx.closePath();
-  ctx.strokeStyle = 'rgba(180,220,180,0.5)';
-  ctx.lineWidth = 2;
-  ctx.stroke();
+    // ── Overlay group — rotates in sync with the globe ────────────────────────────
+    const overlayGroup = new THREE.Group();
+    scene.add(overlayGroup);
 
-  // Ocean grid lines (subtle)
-  ctx.strokeStyle = 'rgba(50,80,120,0.15)';
-  ctx.lineWidth   = 0.5;
-  for (let lat = -60; lat <= 60; lat += 30) {
-    ctx.beginPath();
-    ctx.moveTo(0, (90-lat)/180*H);
-    ctx.lineTo(W, (90-lat)/180*H);
-    ctx.stroke();
-  }
-  for (let lon = -150; lon <= 150; lon += 30) {
-    ctx.beginPath();
-    ctx.moveTo((lon+180)/360*W, 0);
-    ctx.lineTo((lon+180)/360*W, H);
-    ctx.stroke();
-  }
+    // ── Latitude / Longitude grid lines ──────────────────────────────────────────
+    (function buildGrid() {
+      const mat = new THREE.LineBasicMaterial({ color: 0x1a3060, transparent: true, opacity: 0.35 });
+      const r = GLOBE_R + 0.005;
 
-  return new THREE.CanvasTexture(cv);
-}
+      // Parallels (every 30°)
+      for (let lat = -60; lat <= 60; lat += 30) {
+        const pts = [];
+        for (let lon = 0; lon <= 360; lon += 2)
+          pts.push(latLonToVec3(lat, lon - 180, r));
+        overlayGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
+      }
+      // Meridians (every 30°)
+      for (let lon = 0; lon < 360; lon += 30) {
+        const pts = [];
+        for (let lat = -90; lat <= 90; lat += 2)
+          pts.push(latLonToVec3(lat, lon, r));
+        overlayGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
+      }
+    })();
 
-// ── Globe sphere ──────────────────────────────────────────────────────────────
-const globeGeo = new THREE.SphereGeometry(GLOBE_R, 72, 72);
-const globeMat = new THREE.MeshPhongMaterial({
-  map:       buildCanvasEarthTexture(),  // canvas fallback — immediate
-  shininess: 20,
-  specular:  new THREE.Color(0x224466),
-});
-const globe = new THREE.Mesh(globeGeo, globeMat);
-scene.add(globe);
+    // ── India outline (simplified bounding rectangle highlight) ──────────────────
+    (function buildIndiaBox() {
+      const mat = new THREE.LineBasicMaterial({ color: 0x2a6aff, transparent: true, opacity: 0.5 });
+      const corners = [
+        [8.0, 68.0], [8.0, 97.5], [37.5, 97.5], [37.5, 68.0], [8.0, 68.0],
+      ];
+      const pts = corners.map(([la, lo]) => latLonToVec3(la, lo, GLOBE_R + 0.012));
+      overlayGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
+    })();
 
-// ── Try to upgrade to hi-res CDN texture (better detail) ─────────────────────
-// raw.githubusercontent.com serves CORS: Access-Control-Allow-Origin: *
-const TEXTURE_URLS = [
-  'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/land_ocean_ice_cloud_2048.jpg',
-  'https://threejs.org/examples/textures/land_ocean_ice_cloud_2048.jpg',
-];
-(function loadHiResTexture(idx) {
-  if (idx >= TEXTURE_URLS.length) return;  // canvas fallback already active
-  const loader = new THREE.TextureLoader();
-  loader.crossOrigin = 'anonymous';
-  loader.load(
-    TEXTURE_URLS[idx],
-    (tex) => {
-      globeMat.map = tex;
-      globeMat.needsUpdate = true;
-    },
-    undefined,
-    () => loadHiResTexture(idx + 1)  // try next URL on error
-  );
-})(0);
+    // ── Threat zone rings (Northern / Western / Southern) ────────────────────────
+    const THREAT_ZONES = [
+      { lat: 33.5, lon: 78.5, rKm: 500, color: 0xff4b4b, label: "Northern LAC" },
+      { lat: 30.0, lon: 71.0, rKm: 420, color: 0xff9800, label: "Western LoC" },
+      { lat: 7.0, lon: 76.0, rKm: 380, color: 0x2196F3, label: "Southern Sea" },
+    ];
 
-// ── Atmosphere glow ───────────────────────────────────────────────────────────
-const atmoGeo = new THREE.SphereGeometry(GLOBE_R * 1.03, 64, 64);
-const atmoMat = new THREE.MeshPhongMaterial({
-  color:       0x1a4a8a,
-  transparent: true,
-  opacity:     0.08,
-  side:        THREE.BackSide,
-});
-scene.add(new THREE.Mesh(atmoGeo, atmoMat));
+    THREAT_ZONES.forEach(({ lat, lon, rKm, color }) => {
+      const centre = latLonToVec3(lat, lon, GLOBE_R);
+      const deg = rKm / 111.32;
+      const pts = [];
+      const STEPS = 64;
+      for (let i = 0; i <= STEPS; i++) {
+        const a = (i / STEPS) * Math.PI * 2;
+        const la = lat + Math.cos(a) * deg;
+        const lo = lon + Math.sin(a) * deg / Math.cos(lat * Math.PI / 180);
+        pts.push(latLonToVec3(la, lo, GLOBE_R + 0.018));
+      }
+      overlayGroup.add(new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(pts),
+        new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.55 })
+      ));
+    });
 
-// ── Overlay group — rotates in sync with the globe ────────────────────────────
-const overlayGroup = new THREE.Group();
-scene.add(overlayGroup);
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // 6. ASSET MARKERS
+    // ═══════════════════════════════════════════════════════════════════════════════
+    let markerGroup = new THREE.Group();
+    let pulseGroup = new THREE.Group(); // animated rings for critical assets
+    let allMarkerMeta = [];               // { mesh, pulse, asset }
+    scene.add(markerGroup);
+    scene.add(pulseGroup);
 
-// ── Latitude / Longitude grid lines ──────────────────────────────────────────
-(function buildGrid() {
-  const mat = new THREE.LineBasicMaterial({ color: 0x1a3060, transparent: true, opacity: 0.35 });
-  const r   = GLOBE_R + 0.005;
+    function buildMarkers(assets) {
+      // Clear previous
+      while (markerGroup.children.length) markerGroup.remove(markerGroup.children[0]);
+      while (pulseGroup.children.length) pulseGroup.remove(pulseGroup.children[0]);
+      allMarkerMeta = [];
 
-  // Parallels (every 30°)
-  for (let lat = -60; lat <= 60; lat += 30) {
-    const pts = [];
-    for (let lon = 0; lon <= 360; lon += 2)
-      pts.push(latLonToVec3(lat, lon - 180, r));
-    overlayGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
-  }
-  // Meridians (every 30°)
-  for (let lon = 0; lon < 360; lon += 30) {
-    const pts = [];
-    for (let lat = -90; lat <= 90; lat += 2)
-      pts.push(latLonToVec3(lat, lon, r));
-    overlayGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
-  }
-})();
+      assets.forEach(a => {
+        const pos = latLonToVec3(a.lat, a.lon, GLOBE_R + 0.03);
+        const color = STATUS_COLOR[a.status] || 0x888888;
+        const emit = BRANCH_EMISSIVE[a.branch] || 0x333333;
 
-// ── India outline (simplified bounding rectangle highlight) ──────────────────
-(function buildIndiaBox() {
-  const mat = new THREE.LineBasicMaterial({ color: 0x2a6aff, transparent: true, opacity: 0.5 });
-  const corners = [
-    [8.0, 68.0], [8.0, 97.5], [37.5, 97.5], [37.5, 68.0], [8.0, 68.0],
-  ];
-  const pts = corners.map(([la, lo]) => latLonToVec3(la, lo, GLOBE_R + 0.012));
-  overlayGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
-})();
+        // Main dot
+        const geo = new THREE.SphereGeometry(0.028, 10, 10);
+        const mat = new THREE.MeshPhongMaterial({ color, emissive: emit, emissiveIntensity: 0.6, shininess: 80 });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.copy(pos);
+        markerGroup.add(mesh);
 
-// ── Threat zone rings (Northern / Western / Southern) ────────────────────────
-const THREAT_ZONES = [
-  { lat: 33.5, lon: 78.5, rKm: 500,  color: 0xff4b4b, label: "Northern LAC" },
-  { lat: 30.0, lon: 71.0, rKm: 420,  color: 0xff9800, label: "Western LoC" },
-  { lat:  7.0, lon: 76.0, rKm: 380,  color: 0x2196F3, label: "Southern Sea" },
-];
+        // Halo ring for critical
+        let pulse = null;
+        if (a.status === "critical") {
+          const rGeo = new THREE.RingGeometry(0.038, 0.052, 20);
+          const rMat = new THREE.MeshBasicMaterial({ color: 0xff4b4b, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
+          pulse = new THREE.Mesh(rGeo, rMat);
+          pulse.position.copy(pos);
+          // Orient ring to face outward from globe
+          pulse.lookAt(new THREE.Vector3(0, 0, 0));
+          pulse.rotateX(Math.PI / 2);
+          pulseGroup.add(pulse);
+        }
 
-THREAT_ZONES.forEach(({ lat, lon, rKm, color }) => {
-  const centre  = latLonToVec3(lat, lon, GLOBE_R);
-  const deg     = rKm / 111.32;
-  const pts     = [];
-  const STEPS   = 64;
-  for (let i = 0; i <= STEPS; i++) {
-    const a  = (i / STEPS) * Math.PI * 2;
-    const la = lat + Math.cos(a) * deg;
-    const lo = lon + Math.sin(a) * deg / Math.cos(lat * Math.PI / 180);
-    pts.push(latLonToVec3(la, lo, GLOBE_R + 0.018));
-  }
-  overlayGroup.add(new THREE.Line(
-    new THREE.BufferGeometry().setFromPoints(pts),
-    new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.55 })
-  ));
-});
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// 6. ASSET MARKERS
-// ═══════════════════════════════════════════════════════════════════════════════
-let markerGroup   = new THREE.Group();
-let pulseGroup    = new THREE.Group(); // animated rings for critical assets
-let allMarkerMeta = [];               // { mesh, pulse, asset }
-scene.add(markerGroup);
-scene.add(pulseGroup);
-
-function buildMarkers(assets) {
-  // Clear previous
-  while (markerGroup.children.length) markerGroup.remove(markerGroup.children[0]);
-  while (pulseGroup.children.length)  pulseGroup.remove(pulseGroup.children[0]);
-  allMarkerMeta = [];
-
-  assets.forEach(a => {
-    const pos   = latLonToVec3(a.lat, a.lon, GLOBE_R + 0.03);
-    const color = STATUS_COLOR[a.status] || 0x888888;
-    const emit  = BRANCH_EMISSIVE[a.branch] || 0x333333;
-
-    // Main dot
-    const geo  = new THREE.SphereGeometry(0.028, 10, 10);
-    const mat  = new THREE.MeshPhongMaterial({ color, emissive: emit, emissiveIntensity: 0.6, shininess: 80 });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.copy(pos);
-    markerGroup.add(mesh);
-
-    // Halo ring for critical
-    let pulse = null;
-    if (a.status === "critical") {
-      const rGeo = new THREE.RingGeometry(0.038, 0.052, 20);
-      const rMat = new THREE.MeshBasicMaterial({ color: 0xff4b4b, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
-      pulse = new THREE.Mesh(rGeo, rMat);
-      pulse.position.copy(pos);
-      // Orient ring to face outward from globe
-      pulse.lookAt(new THREE.Vector3(0, 0, 0));
-      pulse.rotateX(Math.PI / 2);
-      pulseGroup.add(pulse);
+        allMarkerMeta.push({ mesh, pulse, asset: a });
+      });
     }
 
-    allMarkerMeta.push({ mesh, pulse, asset: a });
-  });
-}
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // 7. FILTERING STATE
+    // ═══════════════════════════════════════════════════════════════════════════════
+    let currentBranch = "All";
+    let currentStatus = "All";
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 7. FILTERING STATE
-// ═══════════════════════════════════════════════════════════════════════════════
-let currentBranch = "All";
-let currentStatus = "All";
-
-function applyFilters() {
-  allMarkerMeta.forEach(({ mesh, pulse, asset }) => {
-    const bOk = currentBranch === "All" || asset.branch === currentBranch;
-    const sOk = currentStatus === "All" || asset.status === currentStatus;
-    const vis  = bOk && sOk;
-    mesh.visible = vis;
-    if (pulse) pulse.visible = vis;
-  });
-}
-
-window.setBranch = function(btn) {
-  currentBranch = btn.dataset.branch;
-  document.querySelectorAll("#hud .hud-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  applyFilters();
-};
-
-window.setStatus = function(btn) {
-  currentStatus = btn.dataset.status;
-  document.querySelectorAll("#filter-bar .hud-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  applyFilters();
-};
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// 8. MOUSE / DRAG / ZOOM
-// ═══════════════════════════════════════════════════════════════════════════════
-let isDragging = false, prevMouse = { x: 0, y: 0 };
-let rotX = 0.45, rotY = 0;
-let zoom = 6;
-
-canvas.addEventListener("mousedown", e => { isDragging = true; prevMouse = { x: e.clientX, y: e.clientY }; });
-window.addEventListener("mouseup",   () => { isDragging = false; });
-window.addEventListener("mousemove", e => {
-  if (!isDragging) return;
-  const dx = e.clientX - prevMouse.x;
-  const dy = e.clientY - prevMouse.y;
-  rotY += dx * 0.006;
-  rotX += dy * 0.006;
-  rotX  = Math.max(-1.4, Math.min(1.4, rotX));
-  prevMouse = { x: e.clientX, y: e.clientY };
-});
-canvas.addEventListener("wheel", e => {
-  zoom = Math.max(3.5, Math.min(10, zoom + e.deltaY * 0.006));
-  e.preventDefault();
-}, { passive: false });
-
-// Touch support
-let lastTouch = null;
-canvas.addEventListener("touchstart", e => { lastTouch = e.touches[0]; }, { passive: true });
-canvas.addEventListener("touchmove", e => {
-  if (!lastTouch) return;
-  const t  = e.touches[0];
-  rotY += (t.clientX - lastTouch.clientX) * 0.006;
-  rotX += (t.clientY - lastTouch.clientY) * 0.006;
-  rotX  = Math.max(-1.4, Math.min(1.4, rotX));
-  lastTouch = t;
-}, { passive: true });
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// 9. RAYCASTING — hover tooltip
-// ═══════════════════════════════════════════════════════════════════════════════
-const raycaster = new THREE.Raycaster();
-raycaster.params.Points = { threshold: 0.05 };
-const mouse   = new THREE.Vector2();
-const tooltip = document.getElementById("tooltip");
-
-canvas.addEventListener("mousemove", e => {
-  const rect = canvas.getBoundingClientRect();
-  mouse.x =  ((e.clientX - rect.left)  / rect.width)  * 2 - 1;
-  mouse.y = -((e.clientY - rect.top)   / rect.height)  * 2 + 1;
-
-  raycaster.setFromCamera(mouse, camera);
-  const hits = raycaster.intersectObjects(markerGroup.children.filter(m => m.visible));
-
-  if (hits.length) {
-    const hit = hits[0];
-    const meta = allMarkerMeta.find(m => m.mesh === hit.object);
-    if (meta) {
-      const a = meta.asset;
-      const sc = { operational:"op", watch:"watch", critical:"crit" }[a.status] || "";
-      tooltip.innerHTML =
-        `<div class="tt-id">${a.id}</div>` +
-        `<div>Type: ${a.type}</div>` +
-        `<div>Branch: ${a.branch}</div>` +
-        `<div>Unit: ${a.unit}</div>` +
-        `<div>Readiness: <b class="tt-stat ${sc}">${a.readiness}%</b></div>` +
-        `<div>Status: <b class="${sc}">${a.status.toUpperCase()}</b></div>`;
-      tooltip.style.display = "block";
-      tooltip.style.left    = (e.clientX - rect.left + 16) + "px";
-      tooltip.style.top     = (e.clientY - rect.top  - 8)  + "px";
+    function applyFilters() {
+      allMarkerMeta.forEach(({ mesh, pulse, asset }) => {
+        const bOk = currentBranch === "All" || asset.branch === currentBranch;
+        const sOk = currentStatus === "All" || asset.status === currentStatus;
+        const vis = bOk && sOk;
+        mesh.visible = vis;
+        if (pulse) pulse.visible = vis;
+      });
     }
-  } else {
-    tooltip.style.display = "none";
-  }
-});
-canvas.addEventListener("mouseleave", () => { tooltip.style.display = "none"; });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 10. AUTO-ORIENT — centre on India on load
-// ═══════════════════════════════════════════════════════════════════════════════
-// In Three.js SphereGeometry (phiStart=0, phiLength=2π):
-//   rotation.y = 0  → camera sees the 180° longitude (date line) due to seam offset
-//   To bring 80°E (India) to face camera: rotY = π - (80° in radians)
-//   Negative tilt on X raises the northern hemisphere toward the viewer
-rotY = Math.PI - (80 * Math.PI / 180);   // India longitude centres on camera
-rotX = -(20 * Math.PI / 180);            // tilt: India/tropics face forward
+    window.setBranch = function (btn) {
+      currentBranch = btn.dataset.branch;
+      document.querySelectorAll("#hud .hud-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      applyFilters();
+    };
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 11. RENDER LOOP
-// ═══════════════════════════════════════════════════════════════════════════════
-let t = 0;
+    window.setStatus = function (btn) {
+      currentStatus = btn.dataset.status;
+      document.querySelectorAll("#filter-bar .hud-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      applyFilters();
+    };
 
-function animate() {
-  requestAnimationFrame(animate);
-  t += 0.016;
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // 8. MOUSE / DRAG / ZOOM
+    // ═══════════════════════════════════════════════════════════════════════════════
+    let isDragging = false, prevMouse = { x: 0, y: 0 };
+    let rotX = 0.45, rotY = 0;
+    let zoom = 6;
 
-  // Subtle auto-rotation when not dragging
-  if (!isDragging) rotY += 0.0008;
+    canvas.addEventListener("mousedown", e => { isDragging = true; prevMouse = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener("mouseup", () => { isDragging = false; });
+    window.addEventListener("mousemove", e => {
+      if (!isDragging) return;
+      const dx = e.clientX - prevMouse.x;
+      const dy = e.clientY - prevMouse.y;
+      rotY += dx * 0.006;
+      rotX += dy * 0.006;
+      rotX = Math.max(-1.4, Math.min(1.4, rotX));
+      prevMouse = { x: e.clientX, y: e.clientY };
+    });
+    canvas.addEventListener("wheel", e => {
+      zoom = Math.max(3.5, Math.min(10, zoom + e.deltaY * 0.006));
+      e.preventDefault();
+    }, { passive: false });
 
-  globe.rotation.y        = rotY;
-  globe.rotation.x        = rotX;
-  overlayGroup.rotation.y = rotY;
-  overlayGroup.rotation.x = rotX;
-  markerGroup.rotation.y  = rotY;
-  markerGroup.rotation.x  = rotX;
-  pulseGroup.rotation.y   = rotY;
-  pulseGroup.rotation.x   = rotX;
+    // Touch support
+    let lastTouch = null;
+    canvas.addEventListener("touchstart", e => { lastTouch = e.touches[0]; }, { passive: true });
+    canvas.addEventListener("touchmove", e => {
+      if (!lastTouch) return;
+      const t = e.touches[0];
+      rotY += (t.clientX - lastTouch.clientX) * 0.006;
+      rotX += (t.clientY - lastTouch.clientY) * 0.006;
+      rotX = Math.max(-1.4, Math.min(1.4, rotX));
+      lastTouch = t;
+    }, { passive: true });
 
-  // Pulse critical rings
-  allMarkerMeta.forEach(({ pulse }) => {
-    if (!pulse) return;
-    const scale = 1 + 0.22 * Math.sin(t * 3);
-    pulse.scale.set(scale, scale, 1);
-    pulse.material.opacity = 0.55 + 0.25 * Math.sin(t * 3 + 1);
-  });
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // 9. RAYCASTING — hover tooltip
+    // ═══════════════════════════════════════════════════════════════════════════════
+    const raycaster = new THREE.Raycaster();
+    raycaster.params.Points = { threshold: 0.05 };
+    const mouse = new THREE.Vector2();
+    const tooltip = document.getElementById("tooltip");
 
-  camera.position.z = zoom;
-  renderer.render(scene, camera);
-}
+    canvas.addEventListener("mousemove", e => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 12. RESIZE HANDLER
-// ═══════════════════════════════════════════════════════════════════════════════
-window.addEventListener("resize", () => {
-  const w = wrap.clientWidth, h = wrap.clientHeight;
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-  renderer.setSize(w, h);
-});
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(markerGroup.children.filter(m => m.visible));
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 13. BOOT
-// ═══════════════════════════════════════════════════════════════════════════════
-(async function boot() {
-  try {
-    const assets = await resolveAssets();
-    buildMarkers(assets);
-    animate();
-    document.getElementById("loader").style.display = "none";
-  } catch(err) {
-    console.error("Globe boot error:", err);
-    // Fallback: use Python data directly
-    buildMarkers(PYTHON_ASSETS);
-    animate();
-    document.getElementById("loader").style.display = "none";
-    document.getElementById("cache-status").textContent = "ERROR";
-  }
-})();
-</script>
+      if (hits.length) {
+        const hit = hits[0];
+        const meta = allMarkerMeta.find(m => m.mesh === hit.object);
+        if (meta) {
+          const a = meta.asset;
+          const sc = { operational: "op", watch: "watch", critical: "crit" }[a.status] || "";
+          tooltip.innerHTML =
+            `<div class="tt-id">${a.id}</div>` +
+            `<div>Type: ${a.type}</div>` +
+            `<div>Branch: ${a.branch}</div>` +
+            `<div>Unit: ${a.unit}</div>` +
+            `<div>Readiness: <b class="tt-stat ${sc}">${a.readiness}%</b></div>` +
+            `<div>Status: <b class="${sc}">${a.status.toUpperCase()}</b></div>`;
+          tooltip.style.display = "block";
+          tooltip.style.left = (e.clientX - rect.left + 16) + "px";
+          tooltip.style.top = (e.clientY - rect.top - 8) + "px";
+        }
+      } else {
+        tooltip.style.display = "none";
+      }
+    });
+    canvas.addEventListener("mouseleave", () => { tooltip.style.display = "none"; });
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // 10. AUTO-ORIENT — centre on India on load
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // In Three.js SphereGeometry (phiStart=0, phiLength=2π):
+    //   rotation.y = 0  → camera sees the 180° longitude (date line) due to seam offset
+    //   To bring 80°E (India) to face camera: rotY = π - (80° in radians)
+    //   Negative tilt on X raises the northern hemisphere toward the viewer
+    rotY = Math.PI - (80 * Math.PI / 180);   // India longitude centres on camera
+    rotX = -(20 * Math.PI / 180);            // tilt: India/tropics face forward
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // 11. RENDER LOOP
+    // ═══════════════════════════════════════════════════════════════════════════════
+    let t = 0;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      t += 0.016;
+
+      // Subtle auto-rotation when not dragging
+      if (!isDragging) rotY += 0.0008;
+
+      globe.rotation.y = rotY;
+      globe.rotation.x = rotX;
+      overlayGroup.rotation.y = rotY;
+      overlayGroup.rotation.x = rotX;
+      markerGroup.rotation.y = rotY;
+      markerGroup.rotation.x = rotX;
+      pulseGroup.rotation.y = rotY;
+      pulseGroup.rotation.x = rotX;
+
+      // Pulse critical rings
+      allMarkerMeta.forEach(({ pulse }) => {
+        if (!pulse) return;
+        const scale = 1 + 0.22 * Math.sin(t * 3);
+        pulse.scale.set(scale, scale, 1);
+        pulse.material.opacity = 0.55 + 0.25 * Math.sin(t * 3 + 1);
+      });
+
+      camera.position.z = zoom;
+      renderer.render(scene, camera);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // 12. RESIZE HANDLER
+    // ═══════════════════════════════════════════════════════════════════════════════
+    window.addEventListener("resize", () => {
+      const w = wrap.clientWidth, h = wrap.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // 13. BOOT
+    // ═══════════════════════════════════════════════════════════════════════════════
+    (async function boot() {
+      try {
+        const assets = await resolveAssets();
+        buildMarkers(assets);
+        animate();
+        document.getElementById("loader").style.display = "none";
+      } catch (err) {
+        console.error("Globe boot error:", err);
+        // Fallback: use Python data directly
+        buildMarkers(PYTHON_ASSETS);
+        animate();
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("cache-status").textContent = "ERROR";
+      }
+    })();
+  </script>
+  <script src="sankalp_tactical_layer.js"></script>
 </body>
+
 </html>

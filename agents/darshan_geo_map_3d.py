@@ -28,6 +28,12 @@ from darshan_geo_map import _load_all_assets, _load_threshold, LOCATION_COORDS
 # ── Load HTML template ─────────────────────────────────────────────────────────
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _HTML_PATH = os.path.join(_HERE, "assets", "geo_map_3d.html")
+_JS_PATH   = os.path.join(_HERE, "assets", "sankalp_tactical_layer.js")
+
+
+def _read_tactical_js() -> str:
+    with open(_JS_PATH, encoding="utf-8") as f:
+        return f.read()
 
 
 def _read_html_template() -> str:
@@ -104,12 +110,16 @@ def render_geo_map_3d():
     assets_json  = _assets_to_json(threshold)
     force_flag   = "true" if force_refresh else "false"
 
+    # Connect tactical layer data   
+    tactical_js = _read_tactical_js()
+
     # Inject Python-side data into the HTML template
     html = (
         html_template
         .replace("__ASSETS_JSON__", assets_json)
         .replace("__THRESHOLD__",   str(threshold))
         .replace("__FORCE_REFRESH__", force_flag)
+        .replace("__TACTICAL_JS__", tactical_js)
     )
 
     st.components.v1.html(html, height=680, scrolling=False)
