@@ -3,7 +3,7 @@
 # `pip install -r requirements.txt` can't silently drift onto a breaking
 # release. See requirements.lock.txt for the exact versions this repo is
 # tested against; regenerate it with `pip freeze` after any deliberate bump.
-pandas>=2.0.0,<3.0.0
+pandas>=3.0.5,<4.0.0
 streamlit>=1.35.0,<2.0.0
 neo4j>=5.0.0,<6.0.0
 scikit-learn>=1.3.0,<2.0.0
