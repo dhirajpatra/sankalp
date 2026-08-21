@@ -17,7 +17,7 @@ streamlit==1.62.0
 neo4j==5.28.4
 scikit-learn==1.9.0
 python-dotenv==0.21.1
-altair==5.5.0
+altair==6.2.2
 groq==1.6.0
 
 sentence-transformers==2.2.2
