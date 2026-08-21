@@ -13,7 +13,7 @@ groq>=1.0.0,<2.0.0
 
 # RAG – pinned to 2.2.2 (last release that doesn't require torchvision)
 # torch CPU-only keeps the Docker image small (~500 MB vs ~3 GB with CUDA)
-sentence-transformers==2.2.2
+sentence-transformers==6.0.0
 torch>=2.0.0,<3.0.0 --index-url https://download.pytorch.org/whl/cpu
 faiss-cpu>=1.8.0,<2.0.0
 # numpy is capped below 2.0 — several pinned deps above (sentence-transformers
