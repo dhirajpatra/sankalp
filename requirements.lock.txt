@@ -28,7 +28,7 @@ numpy==1.26.4
 apscheduler==3.11.3
 streamlit-autorefresh==1.0.1
 
-mcp==1.29.0
+mcp==2.0.0
 starlette==0.52.1
 uvicorn==0.52.4
 
