@@ -17,7 +17,7 @@ logger = logging.getLogger("bandhan_army")
 GOLD_DB   = "data/processed/sankalp_army_gold.db"
 NEO4J_URI  = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
-NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "sankalp123")
+NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "")
 
 
 def _get_status(score):

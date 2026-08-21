@@ -11,7 +11,7 @@ cd sankalp
 
 # 2. Copy environment file
 cp .env.example .env
-# Edit .env if needed (default password: sankalp123)
+# Edit .env and set a real NEO4J_PASSWORD value before starting Neo4j
 
 # 3. Start Docker services
 docker compose up -d
@@ -195,7 +195,7 @@ ORDER BY a.final_readiness_score DESC
 ```
 NEO4J_URI=neo4j://localhost
 NEO4J_USER=neo4j
-NEO4J_PASSWORD=sankalp123
+NEO4J_PASSWORD=<your-secure-password>
 ```
 
 **For Docker:** These are injected into the container automatically.
@@ -222,7 +222,7 @@ rm sankalp_raw.db sankalp_gold.db 2>/dev/null
 ./setup.sh
 
 # Access Neo4j shell directly
-docker exec -it sankalp-neo4j cypher-shell -u neo4j -p sankalp123
+docker exec -it sankalp-neo4j cypher-shell -u neo4j -p "$NEO4J_PASSWORD"
 ```
 
 ---

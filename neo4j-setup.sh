@@ -4,7 +4,10 @@
 
 set -e
 
-NEO4J_PASSWORD="${NEO4J_PASSWORD:-sankalp123}"
+if [ -z "${NEO4J_PASSWORD}" ]; then
+    echo "❌ NEO4J_PASSWORD is not set. Export it (or put it in .env) before running this script."
+    exit 1
+fi
 NEO4J_HOST="localhost"
 NEO4J_PORT="7687"
 

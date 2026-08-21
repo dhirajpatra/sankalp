@@ -12,7 +12,7 @@
 neo4j:
   uri: "bolt://localhost:7687"         # Override: NEO4J_URI
   user: "neo4j"                        # Override: NEO4J_USER
-  password: "sankalp123"              # Override: NEO4J_PASSWORD
+  password: ""                         # Override: NEO4J_PASSWORD (required; do not keep a default)
   connection:
     retries: 5
     retry_delay_seconds: 2             # Base delay; doubles on each retry (exponential backoff)

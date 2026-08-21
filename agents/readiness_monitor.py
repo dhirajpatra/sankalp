@@ -165,7 +165,7 @@ def _fetch_readiness() -> dict:
         load_dotenv(override=True)
         uri  = os.getenv("NEO4J_URI",  "bolt://localhost:7687")
         user = os.getenv("NEO4J_USER", "neo4j")
-        pwd  = os.getenv("NEO4J_PASSWORD", "sankalp123")
+        pwd  = os.getenv("NEO4J_PASSWORD", "")
         driver = GraphDatabase.driver(uri, auth=(user, pwd))
         with driver.session() as s:
             iaf   = s.run("MATCH (a:Aircraft)  RETURN avg(coalesce(a.final_readiness_score, a.readiness_base_score, 0)) AS r").single()["r"] or 0

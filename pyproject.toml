@@ -1,0 +1,19 @@
+[tool.pytest.ini_options]
+# Only collect from tests/ — test_altair.py at the repo root is a manual
+# scratch script (no test functions, imports altair unconditionally), not
+# part of the automated suite, so it must not be auto-collected.
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# Start with a conservative rule set (pyflakes + pycodestyle) so the first
+# lint pass on this codebase doesn't demand a mass rewrite. Widen later.
+select = ["E", "F", "W"]
+ignore = ["E501"]  # line length is enforced by black, not ruff
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]

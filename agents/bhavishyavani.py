@@ -20,7 +20,7 @@ logger = logging.getLogger("bhavishyavani")
 GOLD_DB = cfg("paths.iaf_gold_db")
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
-NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "sankalp123")
+NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "")
 
 
 def get_neo4j_driver(retries: int = 5, delay: int = 2):

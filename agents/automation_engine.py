@@ -51,7 +51,7 @@ NAVY_GOLD_DB  = os.getenv("NAVY_GOLD_DB", cfg("paths.navy_gold_db"))
 
 NEO4J_URI  = os.getenv("NEO4J_URI",      "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER",     "neo4j")
-NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "sankalp123")
+NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "")
 
 # ── singleton scheduler reference ────────────────────────────────────────────
 _scheduler      = None

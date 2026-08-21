@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    # NOTE: continue-on-error is on for now — the existing codebase has ~167
+    # pre-existing lint findings (mostly trailing whitespace) that haven't
+    # been auto-fixed yet, to avoid a mass reformat commit touching every
+    # file. Run `ruff check --fix . && black .` locally as its own commit
+    # (see README "Linting" section), then remove continue-on-error here so
+    # the job actually gates merges.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install lint tools
+        run: pip install ruff black
+      - name: Run ruff
+        run: ruff check .
+      - name: Run black --check
+        run: black --check .
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pip-audit against the locked dependency set
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.lock.txt
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install test dependencies
+        # Only the pieces tests/ actually imports — full requirements.txt
+        # (torch, faiss, sentence-transformers, streamlit, ...) is not needed
+        # to run the unit suite and would slow CI down for no benefit.
+        run: |
+          pip install --upgrade pip
+          pip install neo4j python-dotenv pyyaml fastmcp apscheduler \
+                      pytest pytest-cov
+      - name: Run tests (offline — no Neo4j/GROQ_API_KEY required)
+        # Coverage is scoped to the modules tests/ actually exercises
+        # (automation_engine, ontology_engine, mcp_server). The rest of
+        # agents/ is Streamlit UI code with no test suite yet — including
+        # it here would make the gate meaningless (it'd report ~11%
+        # regardless of how well the tested modules are covered).
+        run: |
+          pytest -q \
+            --cov=agents.automation_engine --cov=agents.ontology_engine --cov=mcp_server \
+            --cov-report=term-missing --cov-fail-under=40
