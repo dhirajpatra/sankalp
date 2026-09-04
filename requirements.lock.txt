@@ -18,7 +18,7 @@ neo4j==5.28.4
 scikit-learn==1.9.0
 python-dotenv==0.21.1
 altair==5.5.0
-groq==1.6.0
+groq==1.7.0
 
 sentence-transformers==2.2.2
 torch==2.13.0
