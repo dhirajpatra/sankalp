@@ -18,7 +18,7 @@ torch>=2.0.0,<3.0.0 --index-url https://download.pytorch.org/whl/cpu
 faiss-cpu>=1.8.0,<2.0.0
 # numpy is capped below 2.0 — several pinned deps above (sentence-transformers
 # 2.2.2, faiss-cpu, this torch range) were built against the numpy 1.x ABI.
-numpy>=1.24.0,<2.0.0
+numpy>=2.5.3,<3.0.0
 
 # Automation scheduler
 apscheduler>=3.10,<4.0
