@@ -27,7 +27,7 @@ streamlit-autorefresh>=1.0.0,<2.0.0
 # ── NEW modules ────────────────────────────────────────────────────────────────
 
 # MCP Server (stdio transport — for Claude Desktop)
-mcp>=1.0.0,<2.0.0
+mcp>=2.2.0,<3.0.0
 
 # MCP Server (HTTP/SSE transport — for URL-based connectors)
 starlette>=0.27.0,<1.0.0
